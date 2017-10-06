@@ -1,10 +1,13 @@
 package ch.ethz.geco.bass;
 
+import java.io.IOException;
 import java.util.Timer;
 
 public class Main {
+    private static Server server;
+    static Player player;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         YoutubeDL yt = new YoutubeDL();
         switch (yt.checkInstall()) {
             case 0: break;
@@ -18,13 +21,16 @@ public class Main {
             default: return;
         }
 
-        if (!yt.chacheDir.exists())
-            yt.chacheDir.mkdir();
+        if (!YoutubeDL.cacheDir.exists())
+            YoutubeDL.cacheDir.mkdir();
 
 
         Timer timer = new Timer();
 
-        timer.scheduleAtFixedRate(new Player(), 0, 1000);
-        timer.scheduleAtFixedRate(new DownloadManager(), 0, 1000);
+        player = new Player();
+        timer.scheduleAtFixedRate(player, 0, 1000);
+
+        // Start webserver to handel queue requests
+        server = new Server();
     }
 }

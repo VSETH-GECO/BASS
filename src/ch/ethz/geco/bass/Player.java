@@ -1,11 +1,12 @@
 package ch.ethz.geco.bass;
 
+import java.io.IOException;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.TimerTask;
 
 /**
- * PLayer class
+ * Player class
  *
  * Responsible for handling both playback and queue
  */
@@ -16,23 +17,20 @@ public class Player extends TimerTask {
         String id;
         String url;
         String loc;
-        String titel;
+        String title;
         String duration;
 
         Status status;
     }
 
     // Vars
-    Queue<Track> tracks;
-    Track current;
+    private Process p;
+    private Queue<Track> tracks;
+    private Track current;
 
     // Methods
     Player() {
         tracks = new PriorityQueue<>();
-
-        // Add a 'finished' track to prevent NP-exceptions
-        current = new Track();
-        current.status = Status.Finished;
     }
 
     /**
@@ -40,27 +38,51 @@ public class Player extends TimerTask {
      * playback and plays a new track if the last one finished.
      */
     public void run() {
-        if (current.status.equals(Status.Finished)) {
-            Track next = tracks.poll();
+        System.out.println(current);
+        // Nothing to do
+        if (current == null && tracks.isEmpty())
+            return;
 
-            if (next.status.equals(Status.Downloaded)) {
-                play(next);
-                next.status = Status.Playing;
-                current = next;
+        if (current == null || current.status.equals(Status.Finished)) {
+            current = tracks.poll();
 
-            } else if (next.status.equals(Status.Downloading)) {
-                return;
+            if (current == null) {
+                // Do nothing
+
+            } else if (current.status.equals(Status.Downloaded)) {
+                play(current);
+                current.status = Status.Playing;
+                DownloadManager.download(tracks.peek());
+
+            } else if (current.status.equals(Status.Downloading)) {
                 // Wait for download to finish
 
-            } else {
-                //TODO implement start Download
-
+            } else if (current.status.equals(Status.Queued)){
+                DownloadManager.download(current);
+                current.status = Status.Downloaded;
             }
+        } else if (current.status.equals(Status.Playing)) {
+            if (!isPlaying())
+                current.status = Status.Finished;
         }
     }
 
-    private void play(Track next) {
-        //TODO implement
+    /**
+     * Play the specified track and save it's
+     * process to process variable of the class
+     *
+     * @param track to be played
+     */
+    private void play(Track track) {
+        try {
+            p = Runtime.getRuntime().exec("ffplay -nodisp ./" + track.loc, null, YoutubeDL.cacheDir);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean isPlaying() {
+        return p != null && p.isAlive();
     }
 
     /**
@@ -69,18 +91,31 @@ public class Player extends TimerTask {
      * @param url of the track
      * @return false if the url was not valid
      */
-    public boolean add(String url) {
+    boolean add(String url) {
         Track newTrack = new Track();
         YoutubeDL yt = new YoutubeDL();
 
         if ((newTrack.id = yt.getVideoId(url)) != null) {
             newTrack.url      = url;
-            newTrack.titel    = yt.getVideoTitel(url);
+            newTrack.title    = yt.getVideoTitle(url);
             newTrack.status   = Status.Queued;
             newTrack.duration = yt.getVideoDuration(url);
+
+            tracks.add(newTrack);
+            //TODO fix
+
+            System.out.println(newTrack.title + " added.");
             return true;
         }
 
         return false;
+    }
+
+    Track getCurrent() {
+        return current;
+    }
+
+    Track getNext() {
+        return tracks.peek();
     }
 }

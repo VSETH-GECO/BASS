@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 class YoutubeDL {
-    final File chacheDir = new File("./chache");
+    static final File cacheDir = new File("./cache");
 
-    String id       = null;
-    String titel    = null;
-    String duration = null;
+    private String id       = null;
+    private String title = null;
+    private String duration = null;
 
     /**
      * Checks if youtube-dl is installed and can be found.
@@ -38,16 +38,16 @@ class YoutubeDL {
     }
 
     /**
-     * Downloads
+     * Downloads the song corresponding to the url
      *
-     * @param url
+     * @param url of the song to be downloaded
      */
     String download(String url) {
         String filename = null;
         try {
             // -x for only downloading music
             // -o for reducing the filename to the yt id
-            Process p = Runtime.getRuntime().exec("youtube-dl -x -o '%(id)s.%(ext)s' " + url, null, chacheDir);
+            Process p = Runtime.getRuntime().exec("youtube-dl -x -o '%(id)s.%(ext)s' " + url, null, cacheDir);
 
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
@@ -74,11 +74,11 @@ class YoutubeDL {
      * @param url of the video
      * @return title of the video or null if it doesn't exist
      */
-    String getVideoTitel(String url) {
+    String getVideoTitle(String url) {
         if (!getVideoInfo(url))
             return null;
 
-        return titel;
+        return title;
     }
 
     /**
@@ -105,6 +105,7 @@ class YoutubeDL {
      * @return id of the video or null if it doesn't exist
      */
     String getVideoId(String url) {
+        System.out.println("request to find out id");
         if (!getVideoInfo(url))
             return null;
 
@@ -119,8 +120,8 @@ class YoutubeDL {
             Process p = Runtime.getRuntime().exec("youtube-dl --get-id -e --get-duration " + url);
 
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            title = br.readLine();
             id = br.readLine();
-            titel = br.readLine();
             duration = br.readLine();
 
             p.waitFor();

@@ -1,7 +1,5 @@
 package ch.ethz.geco.bass;
 
-import java.util.TimerTask;
-
 /**
  * DownloadManager class
  *
@@ -10,8 +8,22 @@ import java.util.TimerTask;
  * track before the current one finishes.
  * Also caches the downloads.
  */
-public class DownloadManager extends TimerTask {
-    public void run() {
-        //TODO implement checking the queue for potential downloads
+class DownloadManager {
+
+    static void download(Player.Track track) {
+        System.out.println("Downloading " + track.title + "...");
+
+        track.status = Player.Status.Downloading;
+
+        // Check if file is in cache
+        String[] files = YoutubeDL.cacheDir.list();
+        for (String file : files) {
+            if (file.contains(track.id + "."))
+                return;
+        }
+
+        // If not we go ahead and download it
+        YoutubeDL yt = new YoutubeDL();
+        track.loc = yt.download(track.url);
     }
 }
