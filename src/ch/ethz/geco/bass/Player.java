@@ -13,8 +13,12 @@ public class Player extends TimerTask {
     // Subclasses and enums
     enum Status {Queued, Downloading, Downloaded, Playing, Finished}
     class Track {
+        String id;
         String url;
         String loc;
+        String titel;
+        String duration;
+
         Status status;
     }
 
@@ -25,6 +29,10 @@ public class Player extends TimerTask {
     // Methods
     Player() {
         tracks = new PriorityQueue<>();
+
+        // Add a 'finished' track to prevent NP-exceptions
+        current = new Track();
+        current.status = Status.Finished;
     }
 
     /**
@@ -62,12 +70,17 @@ public class Player extends TimerTask {
      * @return false if the url was not valid
      */
     public boolean add(String url) {
-        //TODO check if url is valid, return false if not
-
         Track newTrack = new Track();
-        newTrack.url = url;
-        newTrack.status = Status.Queued;
+        YoutubeDL yt = new YoutubeDL();
 
-        return true;
+        if ((newTrack.id = yt.getVideoId(url)) != null) {
+            newTrack.url      = url;
+            newTrack.titel    = yt.getVideoTitel(url);
+            newTrack.status   = Status.Queued;
+            newTrack.duration = yt.getVideoDuration(url);
+            return true;
+        }
+
+        return false;
     }
 }
