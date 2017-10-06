@@ -1,3 +1,5 @@
+package ch.ethz.geco.bass;
+
 import java.util.Timer;
 
 public class Main {
@@ -6,6 +8,6 @@ public class Main {
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new Player(), 0, 1000);
 
-        //TODO start DownloadManager
+        //TODO start ch.ethz.geco.bass.DownloadManager
     }
 }

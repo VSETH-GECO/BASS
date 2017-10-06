@@ -1,7 +1,9 @@
+package ch.ethz.geco.bass;
+
 import java.util.TimerTask;
 
 /**
- * DownloadManager class
+ * ch.ethz.geco.bass.DownloadManager class
  *
  * Responsible for handling the download status of tracks.
  * Periodically polls the queue and begins download of a
