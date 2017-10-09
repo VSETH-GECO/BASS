@@ -132,7 +132,7 @@ class Player {
             // else: nothing to do
         }
 
-        if (current.status == Status.Playing && !tracks.isEmpty() && tracks.peek().status != Status.Downloaded) {
+        if (current != null && current.status == Status.Playing && !tracks.isEmpty() && tracks.peek().status != Status.Downloaded) {
             DownloadManager.download(tracks.peek());
         }
     }
