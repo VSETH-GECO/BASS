@@ -61,6 +61,13 @@ class Player {
             Clip clip = AudioSystem.getClip();
             clip.open(ais);
             clip.start();
+            clip.addLineListener(event -> {
+                if (event.getType() != LineEvent.Type.STOP) {
+                    return;
+                }
+
+                finished();
+            });
 
             current.status = Status.Playing;
             System.out.println("Playback started"); //TODO add to logger
