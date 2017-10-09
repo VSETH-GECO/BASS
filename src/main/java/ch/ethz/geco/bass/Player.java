@@ -1,5 +1,8 @@
 package ch.ethz.geco.bass;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Responsible for handling both playback and queue
  */
 class Player {
+    private static Logger logger = LoggerFactory.getLogger(Player.class);
 
     // Subclasses and enums
     enum Status {Queued, Downloading, Downloaded, Playing, Finished}
@@ -69,7 +73,7 @@ class Player {
             });
 
             current.status = Status.Playing;
-            System.out.println("Playback started"); //TODO add to logger
+            logger.info("Playback started.");
 
             // Download the next track if there is one
             if (!tracks.isEmpty())
@@ -80,7 +84,7 @@ class Player {
     }
 
     private void finished() {
-        System.out.println("Playback finished"); //TODO add to logger
+        logger.info("Playback finished.");
 
         current.status = Status.Finished;
         if (!tracks.isEmpty()) {
@@ -111,7 +115,7 @@ class Player {
 
             tracks.add(newTrack);
 
-            System.out.println(newTrack.title + " added.");
+            logger.info(newTrack.title + " added.");
             return true;
         }
 
@@ -123,7 +127,7 @@ class Player {
      * Track has been added after finishing the last one.
      */
     void update() {
-        System.out.println("Updating player state"); //TODO add to logger
+        logger.info("Updating player state.");
         if (current == null || current.status == Status.Finished) {
             if (!tracks.isEmpty()) {
                 current = tracks.poll();
@@ -143,7 +147,7 @@ class Player {
     void stop() {
         if (p != null)
             p.destroy();
-        System.out.println("Playback stopped");
+        logger.info("Playback stopped");
     }
 
     /**
