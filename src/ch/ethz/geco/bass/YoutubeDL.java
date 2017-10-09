@@ -41,19 +41,20 @@ class YoutubeDL {
      * Downloads the song corresponding to the url
      *
      * @param url of the song to be downloaded
+     * @return filename of the downloaded track
      */
     String download(String url) {
         String filename = null;
         try {
             // -x for only downloading music
             // -o for reducing the filename to the yt id
-            Process p = Runtime.getRuntime().exec("youtube-dl -x -o '%(id)s.%(ext)s' " + url, null, cacheDir);
+            Process p = Runtime.getRuntime().exec("youtube-dl -x -o %(id)s.%(ext)s " + url, null, cacheDir);
 
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
             while((line = br.readLine()) != null) {
-                if (line.contains("[ffmpg]")) {
-                    filename = line.replace("[ffmpg] Destination: ", "");
+                if (line.contains("[ffmpeg]")) {
+                    filename = line.replace("[ffmpeg] Destination: ", "");
                 }
             }
             p.waitFor();

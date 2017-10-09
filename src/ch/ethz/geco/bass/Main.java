@@ -1,7 +1,6 @@
 package ch.ethz.geco.bass;
 
 import java.io.IOException;
-import java.util.Timer;
 
 public class Main {
     private static Server server;
@@ -25,10 +24,7 @@ public class Main {
             YoutubeDL.cacheDir.mkdir();
 
 
-        Timer timer = new Timer();
-
         player = new Player();
-        timer.scheduleAtFixedRate(player, 0, 1000);
 
         // Start webserver to handel queue requests
         server = new Server();

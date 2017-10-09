@@ -2,15 +2,16 @@ package ch.ethz.geco.bass;
 
 import java.io.IOException;
 import java.util.Queue;
-import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Player class
  *
  * Responsible for handling both playback and queue
  */
-public class Player extends TimerTask {
+class Player {
 
     // Subclasses and enums
     enum Status {Queued, Downloading, Downloaded, Playing, Finished}
@@ -35,59 +36,57 @@ public class Player extends TimerTask {
     }
 
     /**
-     * Checks in intervals of 1sec (see main()) the status of the
-     * playback and plays a new track if the last one finished.
-     */
-    public void run() {
-        if(current != null)
-            System.out.println(current.status);
-        // Nothing to do
-        if (current == null && tracks.isEmpty())
-            return;
-
-        // TODO fix if clauses | only poll if status is finished but still get in this branch. It's complicated
-        if (current == null || current.status.equals(Status.Finished)) {
-            current = tracks.poll();
-
-            if (current == null) {
-                // Do nothing
-
-            } else if (current.status.equals(Status.Downloaded)) {
-                play(current);
-                current.status = Status.Playing;
-                DownloadManager.download(tracks.peek());
-
-            } else if (current.status.equals(Status.Downloading)) {
-                // Wait for download to finish
-
-            } else if (current.status.equals(Status.Queued)){
-                DownloadManager.download(current);
-                current.status = Status.Downloaded;
-            }
-        } else if (current.status.equals(Status.Playing)) {
-            if (!isPlaying())
-                current.status = Status.Finished;
-        }
-    }
-
-    /**
      * Play the specified track and save it's
      * process to process variable of the class
      *
      * @param track to be played
      */
     private void play(Track track) {
-        System.out.println("Trying to start playback");
+        System.out.println(track.status);
         try {
+            if (track.status == Status.Queued) {
+                DownloadManager.download(track);
+                Thread.sleep(1000);
+                play(track);
+                return;
+            } else if (track.status == Status.Downloading) {
+                Thread.sleep(1000);
+                play(track);
+                return;
+            }
+
+
+            // Start process with playback
             p = Runtime.getRuntime().exec("ffplay -nodisp ./" + track.loc, null, YoutubeDL.cacheDir);
-            System.out.println("Playback started");
-        } catch (IOException e) {
+
+            // Get process handle and register callback function
+            ProcessHandle ph = p.toHandle();
+            CompletableFuture<ProcessHandle> cf = ph.onExit();
+            cf.thenAccept(ph_ -> finished());
+
+            current.status = Status.Playing;
+            System.out.println("Playback started"); //TODO add to logger
+
+            // Download the next track if there is one
+            if (!tracks.isEmpty())
+                DownloadManager.download(tracks.peek());
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
 
+    private void finished() {
+        System.out.println("Playback finished"); //TODO add to logger
+
+        current.status = Status.Finished;
+        if (!tracks.isEmpty()) {
+            current = tracks.poll();
+            play(current);
+        }
+    }
+
     private boolean isPlaying() {
-        return p != null && p.isAlive();
+        return current.status == Status.Playing;
     }
 
     /**
@@ -113,6 +112,22 @@ public class Player extends TimerTask {
         }
 
         return false;
+    }
+
+    /**
+     * Update the player object. Can start a playback if a new
+     * Track has been added after finishing the last one.
+     */
+    void update() {
+        System.out.println("Updating player state"); //TODO add to logger
+        if (current == null || current.status == Status.Finished) {
+            if (!tracks.isEmpty()) {
+                current = tracks.poll();
+                play(current);
+            }
+            // else: nothing to do
+        }
+
     }
 
     /**

@@ -60,6 +60,8 @@ public class Server implements HttpHandler {
         OutputStream os = t.getResponseBody();
         os.write(response.getBytes());
         os.close();
+
+        player.update();
     }
 
     private void handleGet(HttpExchange t) throws IOException {
@@ -68,6 +70,8 @@ public class Server implements HttpHandler {
             response = "Current song: " + player.getCurrent().title + "\nDuration: " + player.getCurrent().duration;
         if (player.getNext() != null)
             response += "\nNext song: " + player.getNext().title + "\nDuration: " + player.getNext().duration;
+
+        System.out.println(response);
 
         t.sendResponseHeaders(200, response.length());
         OutputStream os = t.getResponseBody();
