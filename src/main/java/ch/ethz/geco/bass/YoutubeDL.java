@@ -21,7 +21,7 @@ class YoutubeDL {
     int checkInstall() {
         int returnValue = 0;
         try {
-            Runtime.getRuntime().exec("youtube-dl -v");
+            Runtime.getRuntime().exec("youtube-dl --version");
 
         } catch (IOException e) {
             returnValue += 1;
