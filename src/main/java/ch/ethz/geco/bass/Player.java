@@ -43,7 +43,6 @@ class Player {
      * @param track to be played
      */
     private void play(Track track) {
-        System.out.println(track.status);
         try {
             if (track.status == Status.Queued) {
                 DownloadManager.download(track);
@@ -133,6 +132,9 @@ class Player {
             // else: nothing to do
         }
 
+        if (current.status == Status.Playing && !tracks.isEmpty() && tracks.peek().status != Status.Downloaded) {
+            DownloadManager.download(tracks.peek());
+        }
     }
 
     /**
