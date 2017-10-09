@@ -8,10 +8,11 @@
     <artifactId>bass</artifactId>
     <version>dev-SNAPSHOT</version>
     <name>BASS</name>
-    <description>The Byro Audio Speaker System</description>
+    <description>The GECO Byro Audio Speaker System</description>
     <inceptionYear>2017</inceptionYear>
 
     <build>
+        <!-- Includes the logback.xml into maven builds -->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
