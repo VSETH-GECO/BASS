@@ -16,7 +16,7 @@ import java.net.InetSocketAddress;
  * interface.
  */
 public class Server extends WebSocketServer {
-    private Logger logger = LoggerFactory.getLogger(Server.class);
+    private static Logger logger = LoggerFactory.getLogger(Server.class);
     Player player;
 
     public Server(Player player, int port) {
@@ -37,7 +37,7 @@ public class Server extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket webSocket, String msg) {
-        logger.debug("Message from " + webSocket.getRemoteSocketAddress().getHostString() + ":" + msg);
+        logger.debug("Message from (" + webSocket.getRemoteSocketAddress().getHostString() + "): " + msg);
         String[] args = msg.split(",");
         switch (args[0]) {
             case "GET":
