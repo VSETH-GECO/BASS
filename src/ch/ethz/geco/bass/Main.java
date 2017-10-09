@@ -27,7 +27,8 @@ public class Main {
         player = new Player();
 
         // Start webserver to handel queue requests
-        server = new Server();
+        server = new Server(player,8080);
+        server.start();
 
         // Stop current playback in case the program is exited
         Runtime.getRuntime().addShutdownHook(new Thread(() -> player.stop()));

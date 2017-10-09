@@ -1,16 +1,10 @@
 package ch.ethz.geco.bass;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-
-import static ch.ethz.geco.bass.Main.player;
 
 /**
  * Server class
@@ -19,63 +13,74 @@ import static ch.ethz.geco.bass.Main.player;
  * requests to modify the queue. Maybe even provide a web-
  * interface.
  */
-public class Server implements HttpHandler {
+public class Server extends WebSocketServer {
+    Player player;
 
-    Server() throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-        server.createContext("/music", this);
-        server.start();
+    public Server(Player player, int port) {
+        super(new InetSocketAddress(port));
+        this.player = player;
     }
 
     @Override
-    public void handle(HttpExchange t) throws IOException {
-        switch (t.getRequestMethod()) {
-            case "GET": handleGet(t);
-            case "PUT": break;
-            case "POST": handlePost(t);
-            case "DELETE": break;
+    public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
+        webSocket.send("Welcome to BASS");
+    }
+
+    @Override
+    public void onClose(WebSocket webSocket, int i, String s, boolean b) {
+    }
+
+    @Override
+    public void onMessage(WebSocket webSocket, String msg) {
+        String[] args = msg.split(",");
+        switch(args[0]) {
+            case "GET": handleGet(webSocket); break;
+            case "POST": handlePost(webSocket, args[1]); break;
+            default:
         }
     }
 
-    private void handlePost(HttpExchange t) throws IOException {
-        // Read the request
-        BufferedReader br = new BufferedReader(new InputStreamReader(t.getRequestBody()));
-        StringBuilder bodyBuilder = new StringBuilder();
-        String line;
-
-        while ((line = br.readLine()) != null)
-            bodyBuilder.append(line);
-
-        String body = bodyBuilder.toString();
-        System.out.println("request received");
-
+    private void handlePost(WebSocket webSocket, String arg) {
         String response;
-        if (player.add(body))
+        System.out.println(arg);
+        if (player.add(arg.trim()))
             response = "Request accepted";
         else
             response = "URL invalid";
 
-
-        t.sendResponseHeaders(200, response.length());
-        OutputStream os = t.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
-
         player.update();
+
+        webSocket.send(response);
     }
 
-    private void handleGet(HttpExchange t) throws IOException {
+    private void handleGet(WebSocket webSocket) {
         String response = "Nothing playing";
         if (player.getCurrent() != null)
             response = "Current song: " + player.getCurrent().title + "\nDuration: " + player.getCurrent().duration;
         if (player.getNext() != null)
             response += "\nNext song: " + player.getNext().title + "\nDuration: " + player.getNext().duration;
 
-        System.out.println(response);
-
-        t.sendResponseHeaders(200, response.length());
-        OutputStream os = t.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+        webSocket.send(response);
     }
+
+    @Override
+    public void onError(WebSocket webSocket, Exception e) {
+
+    }
+
+    @Override
+    public void onStart() {
+
+    }
+
+    // TODO maybe useful
+    /*
+    public void broadcast(String text) {
+        Collection<WebSocket> con = connections();
+        synchronized (con) {
+            for (WebSocket c : con) {
+                c.send(text);
+            }
+        }
+    }*/
 }
