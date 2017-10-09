@@ -17,11 +17,9 @@ import java.net.InetSocketAddress;
  */
 public class Server extends WebSocketServer {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    Player player;
 
-    public Server(Player player, int port) {
+    public Server(int port) {
         super(new InetSocketAddress(port));
-        this.player = player;
     }
 
     @Override
@@ -51,26 +49,9 @@ public class Server extends WebSocketServer {
     }
 
     private void handlePost(WebSocket webSocket, String arg) {
-        String response;
-        System.out.println(arg);
-        if (player.add(arg.trim()))
-            response = "Request accepted";
-        else
-            response = "URL invalid";
-
-        player.update();
-
-        webSocket.send(response);
     }
 
     private void handleGet(WebSocket webSocket) {
-        String response = "Nothing playing";
-        if (player.getCurrent() != null)
-            response = "Current song: " + player.getCurrent().title + "\nDuration: " + player.getCurrent().duration;
-        if (player.getNext() != null)
-            response += "\nNext song: " + player.getNext().title + "\nDuration: " + player.getNext().duration;
-
-        webSocket.send(response);
     }
 
     @Override
