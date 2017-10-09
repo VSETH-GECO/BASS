@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Player class
@@ -57,7 +56,7 @@ class Player {
 
 
             // Start process with playback
-            p = Runtime.getRuntime().exec("ffplay -nodisp ./" + track.loc, null, YoutubeDL.cacheDir);
+            p = Runtime.getRuntime().exec("ffplay -nodisp -autoexit ./" + track.loc, null, YoutubeDL.cacheDir);
 
             // Get process handle and register callback function
             ProcessHandle ph = p.toHandle();
