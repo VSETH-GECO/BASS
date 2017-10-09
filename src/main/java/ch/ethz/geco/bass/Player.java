@@ -1,5 +1,7 @@
 package ch.ethz.geco.bass;
 
+import javax.sound.sampled.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +43,6 @@ class Player {
      * @param track to be played
      */
     private void play(Track track) {
-        System.out.println(track.status);
         try {
             if (track.status == Status.Queued) {
                 DownloadManager.download(track);
@@ -55,13 +56,17 @@ class Player {
             }
 
 
-            // Start process with playback
-            p = Runtime.getRuntime().exec("ffplay -nodisp -autoexit ./" + track.loc, null, YoutubeDL.cacheDir);
+            AudioInputStream ais = AudioSystem.getAudioInputStream(new File(YoutubeDL.cacheDir.toString() + "/" + track.loc));
+            Clip clip = AudioSystem.getClip();
+            clip.open(ais);
+            clip.start();
+            clip.addLineListener(event -> {
+                if (event.getType() != LineEvent.Type.STOP) {
+                    return;
+                }
 
-            // Get process handle and register callback function
-            ProcessHandle ph = p.toHandle();
-            CompletableFuture<ProcessHandle> cf = ph.onExit();
-            cf.thenAccept(ph_ -> finished());
+                finished();
+            });
 
             current.status = Status.Playing;
             System.out.println("Playback started"); //TODO add to logger
@@ -69,7 +74,7 @@ class Player {
             // Download the next track if there is one
             if (!tracks.isEmpty())
                 DownloadManager.download(tracks.peek());
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | UnsupportedAudioFileException | LineUnavailableException e) {
             e.printStackTrace();
         }
     }
@@ -127,6 +132,9 @@ class Player {
             // else: nothing to do
         }
 
+        if (current.status == Status.Playing && !tracks.isEmpty() && tracks.peek().status != Status.Downloaded) {
+            DownloadManager.download(tracks.peek());
+        }
     }
 
     /**
