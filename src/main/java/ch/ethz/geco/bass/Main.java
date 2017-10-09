@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class Main {
-    private static Logger logger = LoggerFactory.getLogger(Main.class);
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     private static Server server;
     static Player player;
@@ -17,7 +17,8 @@ public class Main {
 
         YoutubeDL yt = new YoutubeDL();
         switch (yt.checkInstall()) {
-            case 0: break;
+            case 0:
+                break;
             case 1:
                 logger.error("youtube-dl not found.");
             case 2:
@@ -25,7 +26,8 @@ public class Main {
             case 3:
                 logger.error("youtube-dl and ffmpeg not found.");
                 return;
-            default: return;
+            default:
+                return;
         }
 
         if (!YoutubeDL.cacheDir.exists())
@@ -35,7 +37,7 @@ public class Main {
         player = new Player();
 
         // Start webserver to handel queue requests
-        server = new Server(player,8080);
+        server = new Server(player, 8080);
         server.start();
 
         // Stop current playback in case the program is exited

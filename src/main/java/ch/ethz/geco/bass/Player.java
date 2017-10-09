@@ -12,14 +12,17 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Player class
- *
+ * <p>
  * Responsible for handling both playback and queue
  */
 class Player {
-    private static Logger logger = LoggerFactory.getLogger(Player.class);
+    private static final Logger logger = LoggerFactory.getLogger(Player.class);
 
     // Subclasses and enums
-    enum Status {Queued, Downloading, Downloaded, Playing, Finished}
+    enum Status {
+        Queued, Downloading, Downloaded, Playing, Finished
+    }
+
     class Track {
         String id;
         String url;
@@ -108,9 +111,9 @@ class Player {
         YoutubeDL yt = new YoutubeDL();
 
         if ((newTrack.id = yt.getVideoId(url)) != null) {
-            newTrack.url      = url;
-            newTrack.title    = yt.getVideoTitle(url);
-            newTrack.status   = Status.Queued;
+            newTrack.url = url;
+            newTrack.title = yt.getVideoTitle(url);
+            newTrack.status = Status.Queued;
             newTrack.duration = yt.getVideoDuration(url);
 
             tracks.add(newTrack);

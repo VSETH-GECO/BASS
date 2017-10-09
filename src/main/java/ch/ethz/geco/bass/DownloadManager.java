@@ -5,12 +5,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * DownloadManager class
- *
+ * <p>
  * Responsible for handling the download status of tracks.
  * Also caches the downloads.
  */
 class DownloadManager extends Thread {
-    private static Logger logger = LoggerFactory.getLogger(DownloadManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(DownloadManager.class);
     private Player.Track track;
 
     private DownloadManager(Player.Track track) {

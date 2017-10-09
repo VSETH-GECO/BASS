@@ -1,14 +1,18 @@
 package ch.ethz.geco.bass;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 class YoutubeDL {
+    private static final Logger logger = LoggerFactory.getLogger(YoutubeDL.class);
     static final File cacheDir = new File("./cache");
 
-    private String id       = null;
+    private String id = null;
     private String title = null;
     private String duration = null;
 
@@ -52,7 +56,7 @@ class YoutubeDL {
 
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
-            while((line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 if (line.contains("[ffmpeg]")) {
                     filename = line.replace("[ffmpeg] Destination: ", "");
                 }
@@ -106,7 +110,7 @@ class YoutubeDL {
      * @return id of the video or null if it doesn't exist
      */
     String getVideoId(String url) {
-        System.out.println("request to find out id");
+        logger.debug("Requesting video ID.");
         if (!getVideoInfo(url))
             return null;
 

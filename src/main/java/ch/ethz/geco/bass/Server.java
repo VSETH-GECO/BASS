@@ -16,7 +16,7 @@ import java.net.InetSocketAddress;
  * interface.
  */
 public class Server extends WebSocketServer {
-    private static Logger logger = LoggerFactory.getLogger(Server.class);
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
     Player player;
 
     public Server(Player player, int port) {
