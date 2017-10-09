@@ -19,11 +19,11 @@ public class Main {
         switch (yt.checkInstall()) {
             case 0: break;
             case 1:
-                System.out.println("Error: youtube-dl not found");
+                logger.error("youtube-dl not found.");
             case 2:
-                System.out.println("Error: ffmpeg not found");
+                logger.error("ffmpeg not found.");
             case 3:
-                System.out.println("Error: youtube-dl and ffmpeg not found");
+                logger.error("youtube-dl and ffmpeg not found.");
                 return;
             default: return;
         }
