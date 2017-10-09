@@ -1,9 +1,9 @@
 package ch.ethz.geco.bass;
 
 import java.io.IOException;
-import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Player class
@@ -11,6 +11,7 @@ import java.util.TimerTask;
  * Responsible for handling both playback and queue
  */
 public class Player extends TimerTask {
+
     // Subclasses and enums
     enum Status {Queued, Downloading, Downloaded, Playing, Finished}
     class Track {
@@ -30,7 +31,7 @@ public class Player extends TimerTask {
 
     // Methods
     Player() {
-        tracks = new PriorityQueue<>();
+        tracks = new ConcurrentLinkedQueue<>();
     }
 
     /**
@@ -38,11 +39,13 @@ public class Player extends TimerTask {
      * playback and plays a new track if the last one finished.
      */
     public void run() {
-        System.out.println(current);
+        if(current != null)
+            System.out.println(current.status);
         // Nothing to do
         if (current == null && tracks.isEmpty())
             return;
 
+        // TODO fix if clauses | only poll if status is finished but still get in this branch. It's complicated
         if (current == null || current.status.equals(Status.Finished)) {
             current = tracks.poll();
 
@@ -74,8 +77,10 @@ public class Player extends TimerTask {
      * @param track to be played
      */
     private void play(Track track) {
+        System.out.println("Trying to start playback");
         try {
             p = Runtime.getRuntime().exec("ffplay -nodisp ./" + track.loc, null, YoutubeDL.cacheDir);
+            System.out.println("Playback started");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -102,7 +107,6 @@ public class Player extends TimerTask {
             newTrack.duration = yt.getVideoDuration(url);
 
             tracks.add(newTrack);
-            //TODO fix
 
             System.out.println(newTrack.title + " added.");
             return true;
@@ -111,10 +115,25 @@ public class Player extends TimerTask {
         return false;
     }
 
+    /**
+     * Does, well, stop the current playback
+     */
+    void stop() {
+        if (p != null)
+            p.destroy();
+        System.out.println("Playback stopped");
+    }
+
+    /**
+     * @return the current track
+     */
     Track getCurrent() {
         return current;
     }
 
+    /**
+     * @return the next track in queue
+     */
     Track getNext() {
         return tracks.peek();
     }
