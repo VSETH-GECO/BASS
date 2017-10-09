@@ -48,7 +48,7 @@ class YoutubeDL {
         try {
             // -x for only downloading music
             // -o for reducing the filename to the yt id
-            Process p = Runtime.getRuntime().exec("youtube-dl -x -o %(id)s.%(ext)s " + url, null, cacheDir);
+            Process p = Runtime.getRuntime().exec("youtube-dl -x --audio-format wav -o %(id)s.%(ext)s " + url, null, cacheDir);
 
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
