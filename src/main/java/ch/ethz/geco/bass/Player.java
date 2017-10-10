@@ -16,11 +16,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Responsible for handling both playback and queue
  */
 class Player {
-    private static final Logger logger = LoggerFactory.getLogger(Player.class);
 
     // Subclasses and enums
     enum Status {
-        Queued, Downloading, Downloaded, Playing, Finished
+        Queued, Downloading, Downloaded, Playing, Paused, Finished
     }
 
     class Track {
@@ -34,13 +33,67 @@ class Player {
     }
 
     // Vars
-    private Process p;
+    private static final Logger logger = LoggerFactory.getLogger(Player.class);
     private Queue<Track> tracks;
     private Track current;
+    private Clip clip;
 
     // Methods
     Player() {
         tracks = new ConcurrentLinkedQueue<>();
+    }
+
+
+    /**
+     * Resumes the current track
+     * @return false if there was nothing paused
+     */
+    boolean resume() {
+        if (current != null && current.status == Status.Paused) {
+            logger.info("Playback resumed");
+            clip.start();
+            current.status = Status.Playing;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Pauses the current playback
+     * @return false if there was nothing to pause
+     */
+    boolean pause() {
+        // Clip.stop() is pausing the track
+        if (current != null && current.status == Status.Playing) {
+            logger.info("Playback paused");
+            clip.stop();
+            current.status = Status.Paused;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    boolean nextTrack() {
+        // Stop current playback and free resources
+        if (current != null) {
+            clip.stop();
+            clip.close();
+            clip = null;
+            current.status = Status.Finished;
+        }
+
+        // If available play next track
+        if (!tracks.isEmpty()) {
+            current = tracks.poll();
+            play(current);
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -64,11 +117,11 @@ class Player {
 
 
             AudioInputStream ais = AudioSystem.getAudioInputStream(new File(YoutubeDL.cacheDir.toString() + "/" + track.loc));
-            Clip clip = AudioSystem.getClip();
+            clip = AudioSystem.getClip();
             clip.open(ais);
             clip.start();
             clip.addLineListener(event -> {
-                if (event.getType() != LineEvent.Type.STOP) {
+                if (event.getType() != LineEvent.Type.STOP || event.getFramePosition() != clip.getFrameLength()) {
                     return;
                 }
 
@@ -146,11 +199,20 @@ class Player {
 
     /**
      * Does, well, stop the current playback
+     * @return false is there is nothing to be stopped;
      */
-    void stop() {
-        if (p != null)
-            p.destroy();
-        logger.info("Playback stopped");
+    boolean stop() {
+        if (current != null && clip != null) {
+            logger.info("Playback stopped");
+            clip.stop();
+            clip.close();
+            clip = null;
+            current.status = Status.Finished;
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -158,6 +220,21 @@ class Player {
      */
     Track getCurrent() {
         return current;
+    }
+
+    String getPosition() {
+        if (clip == null)
+            return "0:00";
+
+        // Format time output
+        String pos = String.format("%d:%02d",
+                (int) Math.floor(clip.getMicrosecondPosition() / 1_000_000 / 60),
+                (int) ((clip.getMicrosecondPosition() / 1_000_000) % 60));
+
+        if (!clip.isRunning())
+            pos = "(paused) " + pos;
+
+        return pos;
     }
 
     /**

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
 
 /**
  * Server class
@@ -17,9 +18,11 @@ import java.net.InetSocketAddress;
  */
 public class Server extends WebSocketServer {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
+    private Player player;
 
-    public Server(int port) {
+    Server(Player player, int port) {
         super(new InetSocketAddress(port));
+        this.player = player;
     }
 
     @Override
@@ -37,21 +40,90 @@ public class Server extends WebSocketServer {
     public void onMessage(WebSocket webSocket, String msg) {
         logger.debug("Message from (" + webSocket.getRemoteSocketAddress().getHostString() + "): " + msg);
         String[] args = msg.split(",");
-        switch (args[0]) {
+        switch (args[0].trim()) {
             case "GET":
-                handleGet(webSocket);
+                handleGet(webSocket, args.length > 1 ? args[1] : null);
                 break;
             case "POST":
-                handlePost(webSocket, args[1]);
+                handlePost(webSocket, args[1].trim());
                 break;
             default:
         }
     }
 
     private void handlePost(WebSocket webSocket, String arg) {
+        logger.debug(arg);
+        String response;
+        switch (arg.toLowerCase()) {
+            case "play": {
+                if(player.resume())
+                    response = "Playback resumed";
+                else
+                    response = "Nothing to resume";
+                break;
+            }
+
+            case "pause": {
+                logger.debug("was here");
+                if (player.pause())
+                    response = "Playback paused";
+                else
+                    response = "Nothing is playing";
+                break;
+            }
+
+            case "next": {
+                if (player.nextTrack())
+                    response = "Playing next track";
+                else
+                    response = "No next track available";
+                break;
+            }
+
+            case "stop": {
+                if(player.stop())
+                    response = "Playback stopped";
+                else
+                    response = "Nothing to stop";
+                break;
+            }
+
+            default: {   // Default would be checking for a valid url
+                logger.debug("Somehow managed to get into this branch");
+                if (player.add(arg))
+                    response = "Request accepted";
+                else
+                    response = "URL invalid";
+
+                player.update();
+            }
+        }
+
+
+
+        webSocket.send(response);
+
+        if (response.equals("Request accepted"))
+            broadcast("New track added: " + new YoutubeDL().getVideoTitle(arg));
     }
 
-    private void handleGet(WebSocket webSocket) {
+    private void handleGet(WebSocket webSocket,String arg) {
+        String response;
+
+        if(arg != null && arg.equalsIgnoreCase("help")) {
+            response = "POST:\n pause\n play\n next\n stop\n a url\nGET:\n\nhelp";
+        } else {
+            response = "Nothing playing";
+            if (player.getCurrent() != null)
+                response = "Current track: " + player.getCurrent().title +
+                        "\nDuration: " + player.getPosition() + "/" + player.getCurrent().duration;
+
+            if (player.getNext() != null)
+                response += "\nNext track: " + player.getNext().title +
+                        "\nDuration: " + player.getNext().duration;
+        }
+
+        webSocket.send(response);
     }
 
     @Override
@@ -64,14 +136,12 @@ public class Server extends WebSocketServer {
         logger.info("WS Server started!");
     }
 
-    // TODO maybe useful
-    /*
-    public void broadcast(String text) {
+    private void broadcast(String text) {
         Collection<WebSocket> con = connections();
         synchronized (con) {
             for (WebSocket c : con) {
                 c.send(text);
             }
         }
-    }*/
+    }
 }
