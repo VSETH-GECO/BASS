@@ -41,6 +41,12 @@ public class Server extends WebSocketServer {
     }
 
     private void handlePost(WebSocket webSocket, String arg) {
+        if (arg.equalsIgnoreCase("play")) {
+            player.resume();
+        } else if (arg.equalsIgnoreCase("pause")) {
+            player.pause();
+        }
+
         String response;
         System.out.println(arg);
         if (player.add(arg.trim()))

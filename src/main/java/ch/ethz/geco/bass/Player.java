@@ -13,6 +13,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Responsible for handling both playback and queue
  */
 class Player {
+    //Clip clip;
+
+    public void resume() {
+        //TODO
+    }
+
+    public void pause() {
+        //TODO
+    }
 
     // Subclasses and enums
     enum Status {Queued, Downloading, Downloaded, Playing, Finished}
