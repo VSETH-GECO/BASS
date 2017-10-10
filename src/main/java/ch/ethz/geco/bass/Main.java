@@ -1,5 +1,6 @@
 package ch.ethz.geco.bass;
 
+import ch.ethz.geco.bass.audio.AudioConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,5 +17,9 @@ public class Main {
         // Start webserver to handel queue requests
         server = new Server(8080);
         server.start();
+
+        // Start audio consumer
+        AudioConsumer audioConsumer = new AudioConsumer();
+        audioConsumer.start();
     }
 }

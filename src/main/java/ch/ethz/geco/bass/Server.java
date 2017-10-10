@@ -1,5 +1,7 @@
 package ch.ethz.geco.bass;
 
+import ch.ethz.geco.bass.audio.AudioManager;
+import org.apache.commons.lang3.text.StrTokenizer;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -7,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * Server class
@@ -36,22 +39,15 @@ public class Server extends WebSocketServer {
     @Override
     public void onMessage(WebSocket webSocket, String msg) {
         logger.debug("Message from (" + webSocket.getRemoteSocketAddress().getHostString() + "): " + msg);
-        String[] args = msg.split(",");
-        switch (args[0]) {
-            case "GET":
-                handleGet(webSocket);
-                break;
-            case "POST":
-                handlePost(webSocket, args[1]);
+        StrTokenizer tokenizer = new StrTokenizer(msg, ' ', '"');
+        List<String> tokens = tokenizer.getTokenList();
+
+        switch (tokens.get(0)) {
+            case "ADD":
+                AudioManager.loadAndPlay(tokens.get(1));
                 break;
             default:
         }
-    }
-
-    private void handlePost(WebSocket webSocket, String arg) {
-    }
-
-    private void handleGet(WebSocket webSocket) {
     }
 
     @Override
