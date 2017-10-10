@@ -1,12 +1,16 @@
 package ch.ethz.geco.bass;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * DownloadManager class
- *
+ * <p>
  * Responsible for handling the download status of tracks.
  * Also caches the downloads.
  */
 class DownloadManager extends Thread {
+    private static final Logger logger = LoggerFactory.getLogger(DownloadManager.class);
     private Player.Track track;
 
     private DownloadManager(Player.Track track) {
@@ -21,7 +25,7 @@ class DownloadManager extends Thread {
         String[] files = YoutubeDL.cacheDir.list();
         for (String file : files != null ? files : new String[0]) {
             if (file.contains(track.id + ".")) {
-                System.out.println("Already downloaded"); //TODO add to logger
+                logger.info("File already in cache: " + file);
                 track.loc = file;
                 track.status = Player.Status.Downloaded;
                 return;
@@ -34,10 +38,10 @@ class DownloadManager extends Thread {
     }
 
     public void run() {
-        System.out.println("Downloading " + track.title + "/" + track.id + "..."); //TODO add to logger
+        logger.info("Downloading " + track.title + "/" + track.id + "...");
         YoutubeDL yt = new YoutubeDL();
         track.loc = yt.download(track.url);
         track.status = Player.Status.Downloaded;
-        System.out.println("Download finished");
+        logger.info("Download finished!");
     }
 }

@@ -1,5 +1,8 @@
 package ch.ethz.geco.bass;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
@@ -9,22 +12,17 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Player class
- *
+ * <p>
  * Responsible for handling both playback and queue
  */
 class Player {
-    //Clip clip;
-
-    public void resume() {
-        //TODO
-    }
-
-    public void pause() {
-        //TODO
-    }
+    private static final Logger logger = LoggerFactory.getLogger(Player.class);
 
     // Subclasses and enums
-    enum Status {Queued, Downloading, Downloaded, Playing, Finished}
+    enum Status {
+        Queued, Downloading, Downloaded, Playing, Finished
+    }
+
     class Track {
         String id;
         String url;
@@ -78,7 +76,7 @@ class Player {
             });
 
             current.status = Status.Playing;
-            System.out.println("Playback started"); //TODO add to logger
+            logger.info("Playback started.");
 
             // Download the next track if there is one
             if (!tracks.isEmpty())
@@ -89,7 +87,7 @@ class Player {
     }
 
     private void finished() {
-        System.out.println("Playback finished"); //TODO add to logger
+        logger.info("Playback finished.");
 
         current.status = Status.Finished;
         if (!tracks.isEmpty()) {
@@ -113,14 +111,14 @@ class Player {
         YoutubeDL yt = new YoutubeDL();
 
         if ((newTrack.id = yt.getVideoId(url)) != null) {
-            newTrack.url      = url;
-            newTrack.title    = yt.getVideoTitle(url);
-            newTrack.status   = Status.Queued;
+            newTrack.url = url;
+            newTrack.title = yt.getVideoTitle(url);
+            newTrack.status = Status.Queued;
             newTrack.duration = yt.getVideoDuration(url);
 
             tracks.add(newTrack);
 
-            System.out.println(newTrack.title + " added.");
+            logger.info(newTrack.title + " added.");
             return true;
         }
 
@@ -132,7 +130,7 @@ class Player {
      * Track has been added after finishing the last one.
      */
     void update() {
-        System.out.println("Updating player state"); //TODO add to logger
+        logger.info("Updating player state.");
         if (current == null || current.status == Status.Finished) {
             if (!tracks.isEmpty()) {
                 current = tracks.poll();
@@ -152,7 +150,7 @@ class Player {
     void stop() {
         if (p != null)
             p.destroy();
-        System.out.println("Playback stopped");
+        logger.info("Playback stopped");
     }
 
     /**
