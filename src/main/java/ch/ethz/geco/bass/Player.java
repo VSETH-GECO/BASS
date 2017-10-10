@@ -130,6 +130,7 @@ class Player {
 
             current.status = Status.Playing;
             logger.info("Playback started.");
+            Main.server.broadcast("Now playing: " + current.title);
 
             // Download the next track if there is one
             if (!tracks.isEmpty())

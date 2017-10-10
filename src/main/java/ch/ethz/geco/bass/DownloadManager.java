@@ -3,6 +3,12 @@ package ch.ethz.geco.bass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Scanner;
+
 /**
  * DownloadManager class
  * <p>
@@ -38,10 +44,46 @@ class DownloadManager extends Thread {
     }
 
     public void run() {
-        logger.info("Downloading " + track.title + "/" + track.id + "...");
-        YoutubeDL yt = new YoutubeDL();
-        track.loc = yt.download(track.url);
-        track.status = Player.Status.Downloaded;
-        logger.info("Download finished!");
+        Thread.currentThread().setName("Download");
+
+        File logFile = new File(YoutubeDL.cacheDir, ".log");
+        try {
+            // Check if there is enough cache space
+            long size = Files.walk(YoutubeDL.cacheDir.toPath()).mapToLong(p -> p.toFile().length() ).sum();
+            logger.debug("Current cache size: " + size / 1_048_576 + "MB");
+
+            // If not this will delete the oldest file in cache
+            // TODO optimize to delete the lease used not oldest
+            if (Main.cacheSize * 1_048_576 < size) {
+                Scanner sc = new Scanner(logFile);
+                while (sc.hasNext() && Main.cacheSize * 1_048_576 < size) {
+                    File File = new File(YoutubeDL.cacheDir, sc.nextLine());
+                    size -= File.length();
+                    logger.debug("File deleted: " + File.delete());
+                }
+
+                // Update logfile
+                File newLog = new File(YoutubeDL.cacheDir, ".newlog");
+                FileWriter fw = new FileWriter(newLog);
+                while (sc.hasNext()) {
+                    fw.append(sc.nextLine());
+                }
+                fw.close();
+                sc.close();
+                logFile.delete();
+                newLog.renameTo(logFile);
+            }
+
+            // Download new track
+            logger.info("Downloading " + track.title + "/" + track.id + "...");
+            YoutubeDL yt = new YoutubeDL();
+            track.loc = yt.download(track.url);
+            track.status = Player.Status.Downloaded;
+            new FileWriter(logFile).append(track.loc).close();
+            logger.info("Download finished!");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

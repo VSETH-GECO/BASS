@@ -136,7 +136,7 @@ public class Server extends WebSocketServer {
         logger.info("WS Server started!");
     }
 
-    private void broadcast(String text) {
+    void broadcast(String text) {
         Collection<WebSocket> con = connections();
         synchronized (con) {
             for (WebSocket c : con) {
