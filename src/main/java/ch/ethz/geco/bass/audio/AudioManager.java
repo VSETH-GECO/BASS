@@ -3,10 +3,8 @@ package ch.ethz.geco.bass.audio;
 import ch.ethz.geco.bass.TrackScheduler;
 import ch.ethz.geco.bass.audio.handle.AudioEventHandler;
 import ch.ethz.geco.bass.audio.handle.DefaultAudioLoadResultHandler;
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.*;
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 
 /**
  * Holder for both the player and a track scheduler for one guild.
@@ -34,7 +32,13 @@ public class AudioManager {
         player.addListener(scheduler);
         player.addListener(new AudioEventHandler());
 
-        audioPlayerManager.setPlayerCleanupThreshold(Long.MAX_VALUE);
+        // Change settings of audio player
+        audioPlayerManager.setFrameBufferDuration(1000);
+        audioPlayerManager.getConfiguration().setOpusEncodingQuality(10);
+        audioPlayerManager.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.HIGH);
+        audioPlayerManager.setPlayerCleanupThreshold(Long.MAX_VALUE); // Prevents CLEANUP of player if bot is not in VC
+        // Register remote sources
+        AudioSourceManagers.registerRemoteSources(audioPlayerManager);
     }
 
     /**
@@ -79,7 +83,7 @@ public class AudioManager {
      *
      * @param url     the url to load
      */
-    public void loadAndPlay(String url) {
+    public static void loadAndPlay(String url) {
         audioPlayerManager.loadItem(url, new DefaultAudioLoadResultHandler());
     }
 }
