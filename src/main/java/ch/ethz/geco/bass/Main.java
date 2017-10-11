@@ -15,7 +15,7 @@ public class Main {
         logger.info("BASS");
         logger.info("The GECO Byro Audio Speaker System. Copyright (c) 2017, Licensed under MIT");
 
-        // Start webserver to handel queue requests
+        // Start web socket server
         server = new Server(8080);
         server.start();
 

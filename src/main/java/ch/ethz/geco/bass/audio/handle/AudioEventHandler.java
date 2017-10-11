@@ -1,6 +1,5 @@
 package ch.ethz.geco.bass.audio.handle;
 
-import ch.ethz.geco.bass.audio.AudioManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -13,10 +12,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 public class AudioEventHandler extends AudioEventAdapter {
     @Override
     public void onPlayerPause(AudioPlayer player) {
+
     }
 
     @Override
     public void onPlayerResume(AudioPlayer player) {
+
     }
 
     @Override
