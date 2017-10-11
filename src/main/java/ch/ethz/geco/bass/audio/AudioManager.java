@@ -1,8 +1,8 @@
 package ch.ethz.geco.bass.audio;
 
-import ch.ethz.geco.bass.TrackScheduler;
 import ch.ethz.geco.bass.audio.handle.AudioEventHandler;
 import ch.ethz.geco.bass.audio.handle.DefaultAudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.format.AudioDataFormat;
 import com.sedmelluq.discord.lavaplayer.player.*;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 
@@ -36,6 +36,7 @@ public class AudioManager {
         audioPlayerManager.setFrameBufferDuration(1000);
         audioPlayerManager.getConfiguration().setOpusEncodingQuality(10);
         audioPlayerManager.getConfiguration().setResamplingQuality(AudioConfiguration.ResamplingQuality.HIGH);
+        audioPlayerManager.getConfiguration().setOutputFormat(AudioConsumer.outputFormat);
         audioPlayerManager.setPlayerCleanupThreshold(Long.MAX_VALUE); // Prevents CLEANUP of player if bot is not in VC
         // Register remote sources
         AudioSourceManagers.registerRemoteSources(audioPlayerManager);
