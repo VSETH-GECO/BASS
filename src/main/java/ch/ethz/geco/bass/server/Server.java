@@ -1,5 +1,8 @@
-package ch.ethz.geco.bass;
+package ch.ethz.geco.bass.server;
 
+import ch.ethz.geco.bass.Player;
+import ch.ethz.geco.bass.YoutubeDL;
+import com.google.gson.Gson;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -18,9 +21,10 @@ import java.util.Collection;
  */
 public class Server extends WebSocketServer {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
+    private static final Gson gson = new Gson();
     private Player player;
 
-    Server(Player player, int port) {
+    public Server(Player player, int port) {
         super(new InetSocketAddress(port));
         this.player = player;
     }
@@ -39,20 +43,19 @@ public class Server extends WebSocketServer {
     @Override
     public void onMessage(WebSocket webSocket, String msg) {
         logger.debug("Message from (" + webSocket.getRemoteSocketAddress().getHostString() + "): " + msg);
-        String[] args = msg.split(",");
-        switch (args[0].trim()) {
-            case "GET":
-                handleGet(webSocket, args.length > 1 ? args[1] : null);
-                break;
-            case "POST":
-                handlePost(webSocket, args[1].trim());
-                break;
-            default:
+
+        WSPackage wsp = gson.fromJson(msg, WSPackage.class);
+
+        switch (wsp.method) {
+            case GET: handleGet(webSocket, wsp); break;
+            case POST: handlePost(webSocket, wsp); break;
+            case UPDATE: break;
+            default: break;
         }
     }
 
-    private void handlePost(WebSocket webSocket, String arg) {
-        logger.debug(arg);
+    private void handlePost(WebSocket webSocket, WSPackage wsp) {
+        String arg = (String) wsp.data;
         String response;
         switch (arg.toLowerCase()) {
             case "play": {
@@ -107,7 +110,8 @@ public class Server extends WebSocketServer {
             broadcast("New track added: " + new YoutubeDL().getVideoTitle(arg));
     }
 
-    private void handleGet(WebSocket webSocket,String arg) {
+    private void handleGet(WebSocket webSocket, WSPackage wsp) {
+        String arg = (String) wsp.data;
         String response;
 
         if(arg != null && arg.equalsIgnoreCase("help")) {
@@ -136,7 +140,7 @@ public class Server extends WebSocketServer {
         logger.info("WS Server started!");
     }
 
-    void broadcast(String text) {
+    public void broadcast(String text) {
         Collection<WebSocket> con = connections();
         synchronized (con) {
             for (WebSocket c : con) {

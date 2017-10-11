@@ -15,21 +15,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * <p>
  * Responsible for handling both playback and queue
  */
-class Player {
+public class Player {
 
     // Subclasses and enums
     enum Status {
         Queued, Downloading, Downloaded, Playing, Paused, Finished
     }
 
-    class Track {
-        String id;
-        String url;
-        String loc;
-        String title;
-        String duration;
+    public class Track {
+        public String id;
+        public String url;
+        public String loc;
+        public String title;
+        public String duration;
 
-        Status status;
+        public Status status;
     }
 
     // Vars
@@ -48,7 +48,7 @@ class Player {
      * Resumes the current track
      * @return false if there was nothing paused
      */
-    boolean resume() {
+    public boolean resume() {
         if (current != null && current.status == Status.Paused) {
             logger.info("Playback resumed");
             clip.start();
@@ -64,7 +64,7 @@ class Player {
      * Pauses the current playback
      * @return false if there was nothing to pause
      */
-    boolean pause() {
+    public boolean pause() {
         // Clip.stop() is pausing the track
         if (current != null && current.status == Status.Playing) {
             logger.info("Playback paused");
@@ -77,7 +77,7 @@ class Player {
         return false;
     }
 
-    boolean nextTrack() {
+    public boolean nextTrack() {
         // Stop current playback and free resources
         if (current != null) {
             clip.stop();
@@ -160,7 +160,7 @@ class Player {
      * @param url of the track
      * @return false if the url was not valid
      */
-    boolean add(String url) {
+    public boolean add(String url) {
         Track newTrack = new Track();
         YoutubeDL yt = new YoutubeDL();
 
@@ -183,7 +183,7 @@ class Player {
      * Update the player object. Can start a playback if a new
      * Track has been added after finishing the last one.
      */
-    void update() {
+    public void update() {
         logger.info("Updating player state.");
         if (current == null || current.status == Status.Finished) {
             if (!tracks.isEmpty()) {
@@ -202,7 +202,7 @@ class Player {
      * Does, well, stop the current playback
      * @return false is there is nothing to be stopped;
      */
-    boolean stop() {
+    public boolean stop() {
         if (current != null && clip != null) {
             logger.info("Playback stopped");
             clip.stop();
@@ -219,11 +219,11 @@ class Player {
     /**
      * @return the current track
      */
-    Track getCurrent() {
+    public Track getCurrent() {
         return current;
     }
 
-    String getPosition() {
+    public String getPosition() {
         if (clip == null)
             return "0:00";
 
@@ -241,7 +241,7 @@ class Player {
     /**
      * @return the next track in queue
      */
-    Track getNext() {
+    public Track getNext() {
         return tracks.peek();
     }
 }

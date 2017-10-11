@@ -1,5 +1,6 @@
 package ch.ethz.geco.bass;
 
+import ch.ethz.geco.bass.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

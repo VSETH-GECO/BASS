@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-class YoutubeDL {
+public class YoutubeDL {
     private static final Logger logger = LoggerFactory.getLogger(YoutubeDL.class);
     static final File cacheDir = new File("./cache");
 
@@ -79,7 +79,7 @@ class YoutubeDL {
      * @param url of the video
      * @return title of the video or null if it doesn't exist
      */
-    String getVideoTitle(String url) {
+    public String getVideoTitle(String url) {
         if (!getVideoInfo(url))
             return null;
 
