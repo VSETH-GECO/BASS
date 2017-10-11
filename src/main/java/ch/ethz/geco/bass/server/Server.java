@@ -1,6 +1,8 @@
 package ch.ethz.geco.bass.server;
 
+import ch.ethz.geco.bass.audio.AudioManager;
 import com.google.gson.Gson;
+import org.apache.commons.lang3.text.StrTokenizer;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -9,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Server class
@@ -40,7 +43,12 @@ public class Server extends WebSocketServer {
     public void onMessage(WebSocket webSocket, String msg) {
         logger.debug("Message from (" + webSocket.getRemoteSocketAddress().getHostString() + "): " + msg);
 
-        WSPackage wsp = gson.fromJson(msg, WSPackage.class);
+        StrTokenizer tokenizer = new StrTokenizer(msg, ' ', '"');
+        List<String> tokens = tokenizer.getTokenList();
+
+        if (tokens.get(0).equals("ADD") && tokens.size() > 1) {
+            AudioManager.loadAndPlay(tokens.get(1));
+        }
     }
 
     @Override
