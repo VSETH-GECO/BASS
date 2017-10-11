@@ -16,12 +16,11 @@ public class Main {
         logger.info("The GECO Byro Audio Speaker System. Copyright (c) 2017, Licensed under MIT");
 
         // Start webserver to handel queue requests
+        server = new Server(8080);
         server.start();
 
         // Start audio consumer
         AudioConsumer audioConsumer = new AudioConsumer();
         audioConsumer.start();
-        // Stop current playback in case the program is exited
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> player.stop()));
     }
 }
