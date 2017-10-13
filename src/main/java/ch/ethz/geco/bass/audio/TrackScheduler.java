@@ -48,9 +48,7 @@ public class TrackScheduler extends AudioEventAdapter {
     private void nextTrack() {
         // Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
         // giving null to startTrack, which is a valid argument and will simply stop the player.
-        Integer firstTrack = new ArrayList<>(queue.keySet()).get(0);
-        player.startTrack(queue.get(firstTrack), false);
-        queue.remove(firstTrack);
+        player.startTrack(queue.pollLastEntry().getValue(), false);
     }
 
     @Override
