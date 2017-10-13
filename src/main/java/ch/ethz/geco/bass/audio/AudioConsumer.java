@@ -9,7 +9,7 @@ import javax.sound.sampled.*;
 import java.io.IOException;
 
 /**
- * Consumes audio frames from the audio player decodes them and plays them
+ * Consumes audio frames from the audio player and plays them on the default output
  */
 public class AudioConsumer extends Thread {
     /**

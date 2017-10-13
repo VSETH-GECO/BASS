@@ -45,10 +45,9 @@ public class AudioTrackMetaData {
     }
 
     /**
-     * Returns the absolute number of votes of this track.
-     * This means every negative vote counts as -1 and every positive vote counts as +1.
+     * Returns the sum of all votes of this track.
      *
-     * @return the absolute number of votes of this track
+     * @return the sum of all votes of this track
      */
     public int getVoteCount() {
         int voteCount = 0;
