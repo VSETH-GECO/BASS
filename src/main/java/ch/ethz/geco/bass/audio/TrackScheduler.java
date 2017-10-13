@@ -8,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -16,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TrackScheduler extends AudioEventAdapter {
     private final AudioPlayer player;
     private final AtomicInteger trackCount;
-    private final LinkedHashMap<Integer, AudioTrack> queue;
+    private final ConcurrentSkipListMap<Integer, AudioTrack> queue;
 
     /**
      * @param player The audio player this scheduler uses
@@ -24,7 +25,7 @@ public class TrackScheduler extends AudioEventAdapter {
     public TrackScheduler(AudioPlayer player) {
         this.player = player;
         this.trackCount = new AtomicInteger(0);
-        this.queue = new LinkedHashMap<>();
+        this.queue = new ConcurrentSkipListMap<>();
     }
 
     /**
@@ -70,7 +71,7 @@ public class TrackScheduler extends AudioEventAdapter {
      *
      * @return the playlist
      */
-    public LinkedHashMap<Integer, AudioTrack> getPlaylist() {
+    public ConcurrentSkipListMap<Integer, AudioTrack> getPlaylist() {
         return queue;
     }
 }
