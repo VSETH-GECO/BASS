@@ -1,8 +1,5 @@
 package ch.ethz.geco.bass.server;
 
-import ch.ethz.geco.bass.audio.AudioManager;
-import com.google.gson.Gson;
-import org.apache.commons.lang3.text.StrTokenizer;
 import com.google.gson.*;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -12,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Server class
@@ -42,18 +38,6 @@ public class Server extends WebSocketServer {
     @Override
     public void onClose(WebSocket webSocket, int i, String s, boolean b) {
         logger.info(webSocket.getRemoteSocketAddress().getHostString() + " disconnected!");
-    }
-
-    @Override
-    public void onMessage(WebSocket webSocket, String msg) {
-        logger.debug("Message from (" + webSocket.getRemoteSocketAddress().getHostString() + "): " + msg);
-
-        StrTokenizer tokenizer = new StrTokenizer(msg, ' ', '"');
-        List<String> tokens = tokenizer.getTokenList();
-
-        if (tokens.get(0).equals("ADD") && tokens.size() > 1) {
-            AudioManager.loadAndPlay(tokens.get(1));
-        }
     }
 
     @Override
