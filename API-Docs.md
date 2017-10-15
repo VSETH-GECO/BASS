@@ -26,7 +26,7 @@ Get current track
 ```json
 {
   "method": "retrieve",
-  "type": "player/all",
+  "type": "player/current",
   "data": null
 }
 ```
@@ -47,12 +47,39 @@ Request new track
   "method": "create",
   "type": "queue/uri",
   "data": {
-    "uri": "https://youtube.com/watch?abcdef"
+    "uri": "https://youtube.com/watch?v=abcdef"
   }
 }
 ```
 
 Vote on track
+```json
+{
+  "method": "update",
+  "type": "queue/vote",
+  "data": {
+    "id": 1000000,
+    "vote": 1
+  }
+}
+```
+
+Update on track
+```json
+{
+  "method": "update",
+  "type": "queue/track",
+  "data": {
+    "id": 1000000,
+    "uri": "",
+    "submitterID": 2,
+    "title": "Hardbass",
+    "vote": 1
+  }
+}
+```
+
+
 ```json
 {
   "method": "update",

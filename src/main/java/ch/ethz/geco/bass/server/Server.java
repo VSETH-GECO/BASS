@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.Map;
 
 
 /**
@@ -84,9 +85,6 @@ public class Server extends WebSocketServer {
                     break;
             }
 
-            JsonObject data = jo.getAsJsonObject("data");
-
-
         } else {
             JsonObject jo = new JsonObject();
             jo.addProperty("method", "flush");
@@ -101,8 +99,10 @@ public class Server extends WebSocketServer {
 
         switch (type) {
             case "queue/all":
+                System.out.println("I should now reply with the playlist");
                 break;
-            case "player/all":
+            case "player/current":
+                System.out.println("i should now reply with the current track");
                 break;
         }
     }
@@ -120,11 +120,17 @@ public class Server extends WebSocketServer {
     }
 
     private void handleCreate(WebSocket webSocket, String type, JsonObject jo) {
-        String response;
 
         switch (type) {
             case "queue/uri":
-                System.out.println(jo.getAsJsonObject("data").get("uri").getAsString());
+                String uri = jo.getAsJsonObject("data").get("uri").getAsString();
+                System.out.println(uri);
+
+                JsonObject response = new JsonObject();
+                response.addProperty("method", "flush");
+                response.addProperty("type", "ack");
+                response.add("data", JsonNull.INSTANCE);
+                webSocket.send(response.toString());
                 break;
         }
     }
@@ -134,7 +140,6 @@ public class Server extends WebSocketServer {
 
     private void handleFlush(WebSocket webSocket, String type, JsonObject jo) {
     }
-
 
 
     public void broadcast(String text) {
