@@ -6,21 +6,26 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
     private final AudioPlayer player;
-    private final LinkedList<AudioTrack> queue;
+    private final AtomicInteger trackCount;
+    private final ConcurrentSkipListMap<Integer, AudioTrack> queue;
 
     /**
      * @param player The audio player this scheduler uses
      */
     public TrackScheduler(AudioPlayer player) {
         this.player = player;
-        this.queue = new LinkedList<>();
+        this.trackCount = new AtomicInteger(0);
+        this.queue = new ConcurrentSkipListMap<>();
     }
 
     /**
@@ -33,7 +38,7 @@ public class TrackScheduler extends AudioEventAdapter {
         // something is playing, it returns false and does nothing. In that case the player was already playing so this
         // track goes to the queue instead.
         if (!player.startTrack(track, true)) {
-            queue.offer(track);
+            queue.put(trackCount.getAndIncrement(), track);
         }
     }
 
@@ -43,7 +48,7 @@ public class TrackScheduler extends AudioEventAdapter {
     private void nextTrack() {
         // Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
         // giving null to startTrack, which is a valid argument and will simply stop the player.
-        player.startTrack(queue.poll(), false);
+        player.startTrack(queue.pollLastEntry().getValue(), false);
     }
 
     @Override
@@ -61,9 +66,10 @@ public class TrackScheduler extends AudioEventAdapter {
 
     /**
      * Returns the playlist containing all currently queued tracks.
+     *
      * @return the playlist
      */
-    public LinkedList<AudioTrack> getPlaylist() {
+    public ConcurrentSkipListMap<Integer, AudioTrack> getPlaylist() {
         return queue;
     }
 }

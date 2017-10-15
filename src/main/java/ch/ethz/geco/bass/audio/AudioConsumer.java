@@ -7,22 +7,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.*;
 import java.io.IOException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
- * Consumes audio frames from the audio player decodes them and plays them
+ * Consumes audio frames from the audio player and plays them on the default output
  */
 public class AudioConsumer extends Thread {
     /**
      * The logger of this class
      */
     private static final Logger logger = LoggerFactory.getLogger(AudioConsumer.class);
-
-    /**
-     * A thread scheduler
-     */
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     /**
      * The output format
@@ -41,32 +34,23 @@ public class AudioConsumer extends Thread {
         try {
             output = (SourceDataLine) AudioSystem.getLine(info);
             output.open(stream.getFormat());
+
+            output.start();
+
+            byte[] buffer = new byte[outputFormat.bufferSize(2)];
+            int chunkSize;
+
+            logger.info("Started AudioConsumer!");
+            try {
+                while ((chunkSize = stream.read(buffer)) >= 0) {
+                    output.write(buffer, 0, chunkSize);
+                    sleep(outputFormat.frameDuration()); // Back-off for one frame
+                }
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
         } catch (LineUnavailableException e) {
             e.printStackTrace();
         }
-
-        output.start();
-
-        byte[] buffer = new byte[outputFormat.bufferSize(2)];
-        int chunkSize;
-
-        try {
-            while ((chunkSize = stream.read(buffer)) >= 0) {
-                output.write(buffer, 0, chunkSize);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        /*scheduler.scheduleAtFixedRate(() -> {
-            if (output != null) {
-                byte[] buffer = new byte[outputFormat.bufferSize(2)];
-                int chunkSize;
-
-                if ((chunkSize = stream.read(buffer)) >= 0) {
-                    output.write(buffer, 0, chunkSize);
-                }
-            }
-        }, outputFormat.frameDuration(), outputFormat.frameDuration(), TimeUnit.MILLISECONDS);*/
     }
 }
