@@ -5,6 +5,7 @@ import ch.ethz.geco.bass.audio.AudioTrackMetaData;
 import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -12,8 +13,10 @@ import org.java_websocket.server.WebSocketServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -109,7 +112,8 @@ public class Server extends WebSocketServer {
 
         switch (type) {
             case "queue/all":
-                JsonArray trackList = (JsonArray) gson.toJsonTree(AudioManager.getScheduler().getPlaylist());
+                Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
+                JsonArray trackList = (JsonArray) gson.toJsonTree(AudioManager.getScheduler().getPlaylist(), listType);
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "queue/all");
