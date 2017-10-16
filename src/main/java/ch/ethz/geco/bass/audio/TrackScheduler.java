@@ -8,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TrackScheduler extends AudioEventAdapter {
     private final AudioPlayer player;
     private final AtomicInteger trackCount;
-    private final ConcurrentSkipListMap<Integer, AudioTrack> queue;
+    private final Playlist playlist;
 
     /**
      * @param player The audio player this scheduler uses
@@ -25,7 +26,7 @@ public class TrackScheduler extends AudioEventAdapter {
     public TrackScheduler(AudioPlayer player) {
         this.player = player;
         this.trackCount = new AtomicInteger(0);
-        this.queue = new ConcurrentSkipListMap<>();
+        this.playlist = new Playlist();
     }
 
     /**
@@ -38,7 +39,7 @@ public class TrackScheduler extends AudioEventAdapter {
         // something is playing, it returns false and does nothing. In that case the player was already playing so this
         // track goes to the queue instead.
         if (!player.startTrack(track, true)) {
-            queue.put(trackCount.getAndIncrement(), track);
+            playlist.add(track);
         }
     }
 
@@ -48,7 +49,7 @@ public class TrackScheduler extends AudioEventAdapter {
     private void nextTrack() {
         // Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
         // giving null to startTrack, which is a valid argument and will simply stop the player.
-        player.startTrack(queue.pollLastEntry().getValue(), false);
+        player.startTrack(playlist.poll(), false);
     }
 
     @Override
@@ -69,7 +70,7 @@ public class TrackScheduler extends AudioEventAdapter {
      *
      * @return the playlist
      */
-    public ConcurrentSkipListMap<Integer, AudioTrack> getPlaylist() {
-        return queue;
+    public List<AudioTrack> getPlaylist() {
+        return playlist.getSortedList();
     }
 }

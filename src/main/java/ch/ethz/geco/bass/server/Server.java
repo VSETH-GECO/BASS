@@ -2,6 +2,7 @@ package ch.ethz.geco.bass.server;
 
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.AudioTrackMetaData;
+import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import com.google.gson.*;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -27,6 +28,7 @@ public class Server extends WebSocketServer {
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
     private static final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(AudioTrack.class, new AudioTrackSerializer())
             .setPrettyPrinting()
             .create();
 
@@ -104,23 +106,14 @@ public class Server extends WebSocketServer {
     private void handleGet(WebSocket webSocket, String type, JsonObject jo) {
         JsonObject data = new JsonObject();
         JsonObject response = new JsonObject();
-        JsonArray data1 = new JsonArray();
 
         switch (type) {
             case "queue/all":
-                for (Map.Entry<Integer, AudioTrack> at : AudioManager.getScheduler().getPlaylist().entrySet()) {
-                    JsonObject track = new JsonObject();
-                    track.addProperty("id", at.getKey());
-                    track.addProperty("title", at.getValue().getInfo().title);
-                    track.addProperty("votes", ((AudioTrackMetaData) at.getValue().getUserData()).getVoteCount());
-                    track.addProperty("userID", ((AudioTrackMetaData) at.getValue().getUserData()).getUserID());
-
-                    data1.add(track);
-                }
+                JsonArray trackList = (JsonArray) gson.toJsonTree(AudioManager.getScheduler().getPlaylist());
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "queue/all");
-                response.add("data", data1);
+                response.add("data", trackList);
                 webSocket.send(response.toString());
 
                 break;
@@ -199,6 +192,6 @@ public class Server extends WebSocketServer {
     }
 
     public void broadcast(JsonObject jo) {
-        broadcast(jo.getAsString());
+        broadcast(jo.toString());
     }
 }

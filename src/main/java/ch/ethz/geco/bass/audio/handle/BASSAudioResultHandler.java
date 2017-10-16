@@ -11,8 +11,10 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.java_websocket.WebSocket;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BASSAudioResultHandler implements AudioLoadResultHandler {
+    private static final AtomicInteger trackCount = new AtomicInteger(0);
     private WebSocket webSocket;
     private JsonObject jo;
 
@@ -24,7 +26,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
     @Override
     public void trackLoaded(AudioTrack audioTrack) {
         // Add metadata
-        AudioTrackMetaData metaData = new AudioTrackMetaData(jo.get("userID").getAsString());
+        AudioTrackMetaData metaData = new AudioTrackMetaData(trackCount.getAndIncrement(), jo.get("userID").getAsString());
         audioTrack.setUserData(metaData);
 
         // Reply to user
@@ -69,7 +71,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         List<AudioTrack> playlist = audioPlaylist.getTracks();
 
         for (AudioTrack track : playlist) {
-            track.setUserData(new AudioTrackMetaData(jo.get("userId").getAsString())); // FIXME: Somehow get the user who added the track
+            track.setUserData(new AudioTrackMetaData(trackCount.getAndIncrement(), jo.get("userId").getAsString()));
             AudioManager.getScheduler().queue(track);
         }
     }
