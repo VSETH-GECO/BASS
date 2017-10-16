@@ -38,7 +38,7 @@ public class AudioConsumer extends Thread {
 
             output.start();
 
-            byte[] buffer = new byte[outputFormat.bufferSize(2)];
+            byte[] buffer = new byte[outputFormat.bufferSize(8)];
             int chunkSize;
 
             logger.info("Started AudioConsumer!");
