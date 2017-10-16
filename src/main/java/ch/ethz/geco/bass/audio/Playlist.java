@@ -2,10 +2,8 @@ package ch.ethz.geco.bass.audio;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.nio.ByteBuffer;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -64,6 +62,8 @@ public class Playlist {
     public AudioTrack poll() {
         synchronized (trackSet) {
             synchronized (sortedPlaylist) {
+                if (sortedPlaylist.isEmpty())
+                    return null;
                 AudioTrack track = sortedPlaylist.remove(0);
                 trackSet.remove(((AudioTrackMetaData) track.getUserData()).getTrackID());
                 return track;
@@ -78,6 +78,25 @@ public class Playlist {
      */
     public List<AudioTrack> getSortedList() {
         return sortedPlaylist;
+    }
+
+    /**
+     * Sets the vote of a user for the given track.
+     * <p>
+     * vote = 0 means that the vote gets removed for that user.
+     *
+     * @param trackID the ID of the track
+     * @param userID the ID of the user who voted
+     * @param vote the vote
+     */
+    public void setVote(Integer trackID, String userID, Byte vote) {
+        AudioTrack track = trackSet.get(trackID);
+        if (track != null) {
+            ((AudioTrackMetaData) track.getUserData()).getVotes().put(userID, vote);
+            resort();
+        } else {
+            // TODO: somehow report an error to the interface that the track wasn't found
+        }
     }
 
     /**
