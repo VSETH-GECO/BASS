@@ -1,12 +1,18 @@
 package ch.ethz.geco.bass.server;
 
+import ch.ethz.geco.bass.audio.AudioManager;
+import ch.ethz.geco.bass.audio.AudioTrackMetaData;
+import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import com.google.gson.*;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import javafx.util.Pair;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Map;
@@ -33,7 +39,7 @@ public class Server extends WebSocketServer {
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
         logger.info(webSocket.getRemoteSocketAddress().getHostString() + " connected!");
-        webSocket.send("Welcome to BASS");
+        //webSocket.send("Welcome to BASS");
     }
 
     @Override
@@ -95,13 +101,41 @@ public class Server extends WebSocketServer {
     }
 
     private void handleRetrieve(WebSocket webSocket, String type, JsonObject jo) {
+        JsonObject data = new JsonObject();
+        JsonObject response = new JsonObject();
+        JsonArray data1 = new JsonArray();
 
         switch (type) {
             case "queue/all":
-                System.out.println("I should now reply with the playlist");
+                for (Map.Entry<Integer, AudioTrack> at : AudioManager.getScheduler().getPlaylist().entrySet()) {
+                    JsonObject track = new JsonObject();
+                    track.addProperty("id", at.getKey());
+                    track.addProperty("title", at.getValue().getInfo().title);
+                    track.addProperty("votes", ((AudioTrackMetaData) at.getValue().getUserData()).getVoteCount());
+                    track.addProperty("userID", ((AudioTrackMetaData) at.getValue().getUserData()).getUserID());
+
+                    data1.add(track);
+                }
+
+                response.addProperty("method", "update");
+                response.addProperty("type", "queue/all");
+                response.add("data", data1);
+                webSocket.send(response.toString());
+
                 break;
+
             case "player/current":
-                System.out.println("i should now reply with the current track");
+                AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
+                data.addProperty("id", 0);
+                data.addProperty("title", at.getInfo().title);
+                data.addProperty("votes", ((AudioTrackMetaData) at.getUserData()).getVoteCount());
+                data.addProperty("userID", ((AudioTrackMetaData) at.getUserData()).getUserID());
+
+                response.addProperty("method", "update");
+                response.addProperty("type", "player/current");
+                response.add("data", data);
+                webSocket.send(response.toString());
+
                 break;
         }
     }
@@ -110,10 +144,31 @@ public class Server extends WebSocketServer {
 
         switch (type) {
             case "queue/track/vote":
+                String userID = jo.getAsJsonObject("data").get("userID").getAsString();
+                Byte vote = jo.getAsJsonObject("data").get("vote").getAsByte();
+                int id = jo.getAsJsonObject("data").get("id").getAsInt();
+
+                Map<String, Byte> votes;
+                if (id == 0) {
+                    votes = ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes();
+                } else {
+                    votes = ((AudioTrackMetaData) AudioManager.getScheduler().getPlaylist().get(id).getUserData()).getVotes();
+                }
+
+
+                if (votes.containsKey(userID))
+                    votes.replace(userID, vote);
+                else
+                    votes.put(userID, vote);
+
                 break;
+
             case "player/control/play":
+                AudioManager.getPlayer().setPaused(false);
                 break;
+
             case "player/control/pause":
+                AudioManager.getPlayer().setPaused(true);
                 break;
         }
     }
@@ -123,13 +178,7 @@ public class Server extends WebSocketServer {
         switch (type) {
             case "queue/uri":
                 String uri = jo.getAsJsonObject("data").get("uri").getAsString();
-                System.out.println(uri);
-
-                JsonObject response = new JsonObject();
-                response.addProperty("method", "flush");
-                response.addProperty("type", "ack");
-                response.add("data", JsonNull.INSTANCE);
-                webSocket.send(response.toString());
+                AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, jo.getAsJsonObject("data")));
                 break;
         }
     }
