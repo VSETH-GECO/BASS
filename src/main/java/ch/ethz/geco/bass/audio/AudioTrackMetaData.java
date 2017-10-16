@@ -13,6 +13,12 @@ public class AudioTrackMetaData {
     private final Map<String, Byte> votes = new HashMap<>();
 
     /**
+     * The ID of the track in the player. <p>
+     * Note: This is NOT the same as the ID of the track given by lava-player.
+     */
+    private final Integer trackID;
+
+    /**
      * The ID of the user who added the track.
      */
     private final String userID;
@@ -22,7 +28,8 @@ public class AudioTrackMetaData {
      *
      * @param userID the user who added the track
      */
-    public AudioTrackMetaData(String userID) {
+    public AudioTrackMetaData(Integer trackID, String userID) {
+        this.trackID = trackID;
         this.userID = userID;
     }
 
@@ -33,6 +40,15 @@ public class AudioTrackMetaData {
      */
     public Map<String, Byte> getVotes() {
         return votes;
+    }
+
+    /**
+     * Returns the ID of the track in the player. <p>
+     * Note: This is NOT the same as the ID of the track given by lava-player.
+     * @return the ID of the track in the player
+     */
+    public Integer getTrackID() {
+        return trackID;
     }
 
     /**

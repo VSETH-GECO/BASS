@@ -15,7 +15,7 @@ import java.util.List;
 public class DefaultAudioLoadResultHandler implements AudioLoadResultHandler {
     @Override
     public void trackLoaded(AudioTrack audioTrack) {
-        audioTrack.setUserData(new AudioTrackMetaData("placeholder")); // FIXME: Somehow get the user who added the track
+        audioTrack.setUserData(null); // FIXME: Somehow get the user who added the track
         AudioManager.getScheduler().queue(audioTrack);
     }
 
@@ -26,11 +26,11 @@ public class DefaultAudioLoadResultHandler implements AudioLoadResultHandler {
 
         if (selectedTrack == null) {
             for (AudioTrack track : playlist) {
-                track.setUserData(new AudioTrackMetaData("placeholder")); // FIXME: Somehow get the user who added the track
+                track.setUserData(null); // FIXME: Somehow get the user who added the track
                 AudioManager.getScheduler().queue(track);
             }
         } else {
-            selectedTrack.setUserData(new AudioTrackMetaData("placeholder")); // FIXME: Somehow get the user who added the track
+            selectedTrack.setUserData(null); // FIXME: Somehow get the user who added the track
             AudioManager.getScheduler().queue(selectedTrack);
         }
     }
