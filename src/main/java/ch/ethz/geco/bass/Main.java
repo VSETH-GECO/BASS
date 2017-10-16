@@ -22,6 +22,7 @@ public class Main {
 
         // Start audio consumer
         AudioConsumer audioConsumer = new AudioConsumer();
+        audioConsumer.setName("AudioConsumer");
         audioConsumer.start();
     }
 }
