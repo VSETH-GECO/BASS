@@ -1,7 +1,6 @@
 package ch.ethz.geco.bass.audio;
 
 import ch.ethz.geco.bass.audio.handle.AudioEventHandler;
-import ch.ethz.geco.bass.audio.handle.DefaultAudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.*;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 
@@ -76,14 +75,5 @@ public class AudioManager {
      */
     public static void loadAndPlay(String url, AudioLoadResultHandler resultHandler) {
         audioPlayerManager.loadItem(url, resultHandler);
-    }
-
-    /**
-     * Load and play an url with the default result handler.
-     *
-     * @param url the url to load
-     */
-    public static void loadAndPlay(String url) {
-        audioPlayerManager.loadItem(url, new DefaultAudioLoadResultHandler());
     }
 }
