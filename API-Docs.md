@@ -69,7 +69,19 @@ Get current queue
 {
   "method": "get",
   "type": "queue/all",
-  "data": null
+  "data": [
+    {
+      "uri": 1,
+      "userID": "1",
+      "titel": "Hadbass from Russia",
+      "votes": {
+        "userID": 1,
+        "userID": -2
+      },
+      "length": 50000,
+      "position": 0
+    }
+  ]
 }
 ```
 
