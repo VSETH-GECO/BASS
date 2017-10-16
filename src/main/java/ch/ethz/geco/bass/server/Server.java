@@ -6,6 +6,7 @@ import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -135,6 +136,17 @@ public class Server extends WebSocketServer {
                 webSocket.send(response.toString());
 
                 break;
+
+            case "player/state":
+                AudioPlayer ap = AudioManager.getPlayer();
+                // I feel dirty but it should work
+                String state = ap.isPaused() ? "paused" : ap.getPlayingTrack() == null ? "stopped" : "playing";
+                data.addProperty("state", state);
+
+                response.addProperty("method", "post");
+                response.addProperty("type", "player/control");
+                response.add("data", data);
+                webSocket.send(response.toString());
         }
     }
 
@@ -186,7 +198,7 @@ public class Server extends WebSocketServer {
     }
 
 
-    public void broadcast(String text) {
+    private void broadcast(String text) {
         Collection<WebSocket> con = connections();
         synchronized (con) {
             for (WebSocket c : con) {

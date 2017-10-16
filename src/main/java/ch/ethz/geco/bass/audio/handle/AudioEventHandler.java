@@ -16,41 +16,22 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 public class AudioEventHandler extends AudioEventAdapter {
     @Override
     public void onPlayerPause(AudioPlayer player) {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("method", "post");
-        jo.addProperty("type", "player/control/pause");
-        jo.add("data", JsonNull.INSTANCE);
-
-        Main.server.broadcast(jo);
+        broadcastState("paused");
     }
 
     @Override
     public void onPlayerResume(AudioPlayer player) {
-        setPlay();
+        broadcastState("playing");
     }
 
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
-        setPlay();
-    }
-
-    private void setPlay() {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("method", "post");
-        jo.addProperty("type", "player/control/play");
-        jo.add("data", JsonNull.INSTANCE);
-
-        Main.server.broadcast(jo);
+        broadcastState("playing");
     }
 
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("method", "post");
-        jo.addProperty("type", "player/control/stop");
-        jo.add("data", JsonNull.INSTANCE);
-
-        Main.server.broadcast(jo);
+        broadcastState("stopped");
     }
 
     @Override
@@ -59,5 +40,23 @@ public class AudioEventHandler extends AudioEventAdapter {
 
     @Override
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
+    }
+
+    /**
+     * Broadcast new player state to all connected websockets
+     *
+     * @param state the state as string [playing|paused|stopped]
+     */
+    private void broadcastState(String state) {
+        JsonObject jo = new JsonObject();
+        JsonObject data = new JsonObject();
+
+        data.addProperty("state", state);
+
+        jo.addProperty("method", "post");
+        jo.addProperty("type", "player/control");
+        jo.add("data", data);
+
+        Main.server.broadcast(jo);
     }
 }

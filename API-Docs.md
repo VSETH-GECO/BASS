@@ -16,40 +16,27 @@ On connect
 ## Player
 
 ### Control
-Play
+Play/Pause
 ```json
 {
   "method": "patch",
-  "type": "player/control/play",
-  "data": null
+  "type": "player/control",
+  "data": {
+    "state": "play"
+  }
 }
 ```
 
-Pause
-```json
-{
-  "method": "patch",
-  "type": "player/control/pause",
-  "data": null
-}
-```
 
 ### Update
-Play
+Play/Pause/Stop
 ```json
 {
   "method": "post",
-  "type": "player/control/play",
-  "data": null
-}
-```
-
-Pause
-```json
-{
-  "method": "post",
-  "type": "player/control/pause",
-  "data": null
+  "type": "player/control",
+  "data": {
+    "state": "play"
+  }
 }
 ```
 
@@ -75,8 +62,8 @@ Get current queue
       "userID": "1",
       "titel": "Hadbass from Russia",
       "votes": {
-        "userID": 1,
-        "userID": -2
+        "userID1": 1,
+        "userID2": -2
       },
       "length": 50000,
       "position": 0
