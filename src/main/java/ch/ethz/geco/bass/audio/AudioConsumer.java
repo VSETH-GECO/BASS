@@ -2,6 +2,7 @@ package ch.ethz.geco.bass.audio;
 
 import com.sedmelluq.discord.lavaplayer.format.AudioDataFormat;
 import com.sedmelluq.discord.lavaplayer.format.AudioPlayerInputStream;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,16 +43,20 @@ public class AudioConsumer extends Thread {
 
             logger.info("Started AudioConsumer!");
             try {
+                long frameDuration = outputFormat.frameDuration();
+                AudioPlayer player = AudioManager.getPlayer();
                 while (true) {
-                    if (!AudioManager.getPlayer().isPaused()) {
+                    if (!player.isPaused()) {
                         if ((chunkSize = stream.read(buffer)) >= 0) {
                             output.write(buffer, 0, chunkSize);
                         } else {
+                            logger.error("Reached end of stream, this should not happen!");
+                            logger.error("Stopped AudioConsumer!");
                             break;
                         }
                     }
 
-                    sleep(outputFormat.frameDuration()); // Back-off for one frame
+                    sleep(frameDuration); // Back-off for one frame
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
