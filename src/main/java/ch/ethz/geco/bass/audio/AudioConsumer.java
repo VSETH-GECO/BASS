@@ -42,8 +42,15 @@ public class AudioConsumer extends Thread {
 
             logger.info("Started AudioConsumer!");
             try {
-                while ((chunkSize = stream.read(buffer)) >= 0) {
-                    output.write(buffer, 0, chunkSize);
+                while (true) {
+                    if (!AudioManager.getPlayer().isPaused()) {
+                        if ((chunkSize = stream.read(buffer)) >= 0) {
+                            output.write(buffer, 0, chunkSize);
+                        } else {
+                            break;
+                        }
+                    }
+
                     sleep(outputFormat.frameDuration()); // Back-off for one frame
                 }
             } catch (IOException | InterruptedException e) {
