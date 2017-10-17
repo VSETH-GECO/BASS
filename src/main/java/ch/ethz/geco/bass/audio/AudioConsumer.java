@@ -11,21 +11,21 @@ import javax.sound.sampled.*;
 import java.io.IOException;
 
 /**
- * Consumes audio frames from the audio player and plays them on the default output
+ * Consumes audio frames from the audio player and plays them on the default output.
  */
 public class AudioConsumer extends Thread {
     /**
-     * The logger of this class
+     * The logger of this class.
      */
     private static final Logger logger = LoggerFactory.getLogger(AudioConsumer.class);
 
     /**
-     * The output format
+     * The output format. This is the format we request from lavaplayer and the conversion is handled by it.
      */
     public static final AudioDataFormat outputFormat = new AudioDataFormat(2, 48000, 960, AudioDataFormat.Codec.PCM_S16_LE);
 
     /**
-     * The audio output line
+     * The audio output line.
      */
     private static SourceDataLine output;
 
@@ -35,7 +35,7 @@ public class AudioConsumer extends Thread {
         SourceDataLine.Info info = new DataLine.Info(SourceDataLine.class, stream.getFormat());
         try {
             output = (SourceDataLine) AudioSystem.getLine(info);
-            output.open(stream.getFormat());
+            output.open(stream.getFormat(), outputFormat.chunkSampleCount * 5);
 
             output.start();
 
