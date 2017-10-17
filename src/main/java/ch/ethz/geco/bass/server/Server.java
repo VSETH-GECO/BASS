@@ -76,7 +76,7 @@ public class Server extends WebSocketServer {
 
         if (je.isJsonObject()) {
             JsonObject wsPacket = je.getAsJsonObject();
-            JsonObject data = wsPacket.getAsJsonObject("data");
+            JsonObject data = wsPacket.get("data").isJsonObject() ? wsPacket.getAsJsonObject("data") : null;
 
             Method method = Method.valueOf(wsPacket.get("method").getAsString());
             String type = wsPacket.get("type").getAsString();
@@ -218,7 +218,7 @@ public class Server extends WebSocketServer {
         switch (type) {
             case "queue/uri":
                 String uri = data.get("uri").getAsString();
-                AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, data.getAsJsonObject("data")));
+                AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, data));
                 break;
 
             case "player/control":

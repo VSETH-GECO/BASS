@@ -1,15 +1,20 @@
 package ch.ethz.geco.bass.audio.handle;
 
+import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.AudioTrackMetaData;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.java_websocket.WebSocket;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,8 +41,10 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         response.add("data", JsonNull.INSTANCE);
         webSocket.send(response.toString());
 
+        // Inform all connected users
+        updatePlaylistForUsers();
+
         AudioManager.getScheduler().queue(audioTrack);
-        //super.trackLoaded(audioTrack);
     }
 
     @Override
@@ -74,6 +81,18 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
             track.setUserData(new AudioTrackMetaData(trackCount.getAndIncrement(), jo.get("userId").getAsString()));
             AudioManager.getScheduler().queue(track);
         }
+    }
+
+    private void updatePlaylistForUsers() {
+        JsonObject response = new JsonObject();
+
+        Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
+        JsonArray trackList = (JsonArray) new Gson().toJsonTree(AudioManager.getScheduler().getPlaylist(), listType);
+
+        response.addProperty("method", "post");
+        response.addProperty("type", "queue/all");
+        response.add("data", trackList);
+        Main.server.broadcast(response);
     }
 
 }
