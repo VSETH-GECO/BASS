@@ -1,8 +1,8 @@
 package ch.ethz.geco.bass.audio.handle;
 
 import ch.ethz.geco.bass.Main;
-import ch.ethz.geco.bass.server.Server;
-import com.google.gson.JsonNull;
+import ch.ethz.geco.bass.audio.AudioManager;
+import ch.ethz.geco.bass.audio.AudioTrackMetaData;
 import com.google.gson.JsonObject;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
@@ -26,7 +26,23 @@ public class AudioEventHandler extends AudioEventAdapter {
 
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
+        // Inform users of new player state
         broadcastState("playing");
+
+        // Inform users of new track being played
+        JsonObject responseData = new JsonObject();
+        JsonObject response = new JsonObject();
+
+        AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
+        responseData.addProperty("id", -1);
+        responseData.addProperty("title", at.getInfo().title);
+        responseData.addProperty("votes", ((AudioTrackMetaData) at.getUserData()).getVoteCount());
+        responseData.addProperty("userID", ((AudioTrackMetaData) at.getUserData()).getUserID());
+
+        response.addProperty("method", "post");
+        response.addProperty("type", "player/current");
+        response.add("data", responseData);
+        Main.server.broadcast(response);
     }
 
     @Override
