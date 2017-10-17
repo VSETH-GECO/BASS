@@ -220,7 +220,7 @@ public class Server extends WebSocketServer {
             case "player/control":
                 AudioManager.getPlayer().setPaused(
                         // Note that also 'stopped' and totally invalid parameters will set it to playing, but I guess that's ok
-                        data.get("status").toString().equals("paused")
+                        data.get("status").getAsString().equals("paused")
                 );
                 break;
         }
