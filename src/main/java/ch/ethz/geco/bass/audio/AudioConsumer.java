@@ -25,6 +25,12 @@ public class AudioConsumer extends Thread {
     public static final AudioDataFormat outputFormat = new AudioDataFormat(2, 48000, 960, AudioDataFormat.Codec.PCM_S16_LE);
 
     /**
+     * How many chunks we want to be able to store in the output buffer.
+     * One chunk is approximately 20 ms of audio data.
+     */
+    public static final short OUTPUT_BUFFER_CHUNK_COUNT = 5;
+
+    /**
      * The audio output line.
      */
     private static SourceDataLine output;
@@ -35,7 +41,7 @@ public class AudioConsumer extends Thread {
         SourceDataLine.Info info = new DataLine.Info(SourceDataLine.class, stream.getFormat());
         try {
             output = (SourceDataLine) AudioSystem.getLine(info);
-            output.open(stream.getFormat(), outputFormat.chunkSampleCount * 5);
+            output.open(stream.getFormat(), outputFormat.bufferSize(2) * OUTPUT_BUFFER_CHUNK_COUNT);
 
             output.start();
 
