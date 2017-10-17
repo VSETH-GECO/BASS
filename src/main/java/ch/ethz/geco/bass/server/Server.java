@@ -1,5 +1,6 @@
 package ch.ethz.geco.bass.server;
 
+import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.AudioTrackMetaData;
 import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
@@ -31,10 +32,6 @@ public class Server extends WebSocketServer {
     enum Method {get, post, patch, delete}
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    private static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(AudioTrack.class, new AudioTrackSerializer())
-            .setPrettyPrinting()
-            .create();
 
     public Server(int port) {
         super(new InetSocketAddress(port));
@@ -59,7 +56,7 @@ public class Server extends WebSocketServer {
 
     @Override
     public void onError(WebSocket webSocket, Exception e) {
-        logger.error(e.getMessage());
+        e.printStackTrace();
     }
 
     @Override
@@ -109,7 +106,7 @@ public class Server extends WebSocketServer {
             jo.addProperty("type", "error");
             jo.add("data", data);
 
-            webSocket.send(gson.toJson(jo));
+            webSocket.send(Main.GSON.toJson(jo));
         }
     }
 
@@ -130,8 +127,7 @@ public class Server extends WebSocketServer {
 
         switch (type) {
             case "queue/all":
-                Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
-                JsonArray trackList = (JsonArray) gson.toJsonTree(AudioManager.getScheduler().getPlaylist(), listType);
+                JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist());
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "queue/all");
@@ -143,10 +139,7 @@ public class Server extends WebSocketServer {
             case "player/current":
                 AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
 
-                responseData.addProperty("id", -1);
-                responseData.addProperty("title", at.getInfo().title);
-                responseData.addProperty("votes", ((AudioTrackMetaData) at.getUserData()).getVoteCount());
-                responseData.addProperty("userID", ((AudioTrackMetaData) at.getUserData()).getUserID());
+                responseData = (JsonObject) Main.GSON.toJsonTree(at);
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "player/current");

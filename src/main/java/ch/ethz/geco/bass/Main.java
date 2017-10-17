@@ -1,7 +1,11 @@
 package ch.ethz.geco.bass;
 
 import ch.ethz.geco.bass.audio.AudioConsumer;
+import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
 import ch.ethz.geco.bass.server.Server;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +15,14 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static Server server;
+
+    /**
+     * The global gson object.
+     */
+    public static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(AudioTrack.class, new AudioTrackSerializer())
+            .setPrettyPrinting()
+            .create();
 
     public static void main(String[] args) throws IOException {
         logger.info("BASS");

@@ -86,8 +86,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
     private void updatePlaylistForUsers() {
         JsonObject response = new JsonObject();
 
-        Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
-        JsonArray trackList = (JsonArray) new Gson().toJsonTree(AudioManager.getScheduler().getPlaylist(), listType);
+        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist());
 
         response.addProperty("method", "post");
         response.addProperty("type", "queue/all");
