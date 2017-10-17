@@ -125,14 +125,10 @@ public class Server extends WebSocketServer {
 
             case "player/current":
                 AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
-                data.addProperty("id", -1);
-                data.addProperty("title", at.getInfo().title);
-                data.addProperty("votes", ((AudioTrackMetaData) at.getUserData()).getVoteCount());
-                data.addProperty("userID", ((AudioTrackMetaData) at.getUserData()).getUserID());
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "player/current");
-                response.add("data", data);
+                response.add("data", gson.toJsonTree(at));
                 webSocket.send(response.toString());
 
                 break;
