@@ -30,18 +30,13 @@ public class AudioEventHandler extends AudioEventAdapter {
         broadcastState("playing");
 
         // Inform users of new track being played
-        JsonObject responseData = new JsonObject();
         JsonObject response = new JsonObject();
 
         AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
-        responseData.addProperty("id", -1);
-        responseData.addProperty("title", at.getInfo().title);
-        responseData.addProperty("votes", ((AudioTrackMetaData) at.getUserData()).getVoteCount());
-        responseData.addProperty("userID", ((AudioTrackMetaData) at.getUserData()).getUserID());
 
         response.addProperty("method", "post");
         response.addProperty("type", "player/current");
-        response.add("data", responseData);
+        response.add("data", Main.GSON.toJsonTree(at, AudioTrack.class));
         Main.server.broadcast(response);
     }
 

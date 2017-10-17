@@ -127,7 +127,8 @@ public class Server extends WebSocketServer {
 
         switch (type) {
             case "queue/all":
-                JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist());
+                Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
+                JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist(), listType);
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "queue/all");
@@ -139,7 +140,7 @@ public class Server extends WebSocketServer {
             case "player/current":
                 AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
 
-                responseData = (JsonObject) Main.GSON.toJsonTree(at);
+                responseData = (JsonObject) Main.GSON.toJsonTree(at, AudioTrack.class);
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "player/current");
