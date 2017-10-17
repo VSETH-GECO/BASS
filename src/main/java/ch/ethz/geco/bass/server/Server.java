@@ -75,22 +75,25 @@ public class Server extends WebSocketServer {
         JsonElement je = jp.parse(msg);
 
         if (je.isJsonObject()) {
-            JsonObject jo = je.getAsJsonObject();
-            Method method = Method.valueOf(jo.get("method").getAsString());
-            String type = jo.get("type").getAsString();
+            JsonObject wsPacket = je.getAsJsonObject();
+            JsonObject data = wsPacket.getAsJsonObject("data");
+
+            Method method = Method.valueOf(wsPacket.get("method").getAsString());
+            String type = wsPacket.get("type").getAsString();
+
 
             switch (method) {
                 case get:
-                    handleGet(webSocket, type, jo);
+                    handleGet(webSocket, type, data);
                     break;
                 case post:
-                    handlePost(webSocket, type, jo);
+                    handlePost(webSocket, type, data);
                     break;
                 case patch:
-                    handlePatch(webSocket, type, jo);
+                    handlePatch(webSocket, type, data);
                     break;
                 case delete:
-                    handleDelete(webSocket, type, jo);
+                    handleDelete(webSocket, type, data);
                     break;
 
                 default:
@@ -107,8 +110,19 @@ public class Server extends WebSocketServer {
         }
     }
 
-    private void handleGet(WebSocket webSocket, String type, JsonObject jo) {
-        JsonObject data = new JsonObject();
+    /**
+     * Implemented api endpoints:
+     *
+     * - queue/all
+     * - player/current
+     * - player/state
+     *
+     * @param webSocket the websocket(connection) that send the msg
+     * @param type or api endpoint that should be reached
+     * @param data object that holds more information on what to do
+     */
+    private void handleGet(WebSocket webSocket, String type, JsonObject data) {
+        JsonObject responseData = new JsonObject();
         JsonObject response = new JsonObject();
 
         switch (type) {
@@ -125,40 +139,50 @@ public class Server extends WebSocketServer {
 
             case "player/current":
                 AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
-                data.addProperty("id", -1);
-                data.addProperty("title", at.getInfo().title);
-                data.addProperty("votes", ((AudioTrackMetaData) at.getUserData()).getVoteCount());
-                data.addProperty("userID", ((AudioTrackMetaData) at.getUserData()).getUserID());
+                responseData.addProperty("id", -1);
+                responseData.addProperty("title", at.getInfo().title);
+                responseData.addProperty("votes", ((AudioTrackMetaData) at.getUserData()).getVoteCount());
+                responseData.addProperty("userID", ((AudioTrackMetaData) at.getUserData()).getUserID());
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "player/current");
-                response.add("data", data);
+                response.add("data", responseData);
                 webSocket.send(response.toString());
 
                 break;
 
             case "player/state":
                 AudioPlayer ap = AudioManager.getPlayer();
-                // I feel dirty but it should work
+                // It feels dirty but may actually do what it should should work
                 String state = ap.isPaused() ? "paused" : ap.getPlayingTrack() == null ? "stopped" : "playing";
-                data.addProperty("state", state);
+                responseData.addProperty("state", state);
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "player/control");
-                response.add("data", data);
+                response.add("data", responseData);
                 webSocket.send(response.toString());
         }
     }
 
-    private void handlePatch(WebSocket webSocket, String type, JsonObject jo) {
+    /**
+     * Implemented api endpoints:
+     *
+     * - track/vote
+     *
+     * @param webSocket the websocket(connection) that send the msg
+     * @param type or api endpoint that should be reached
+     * @param data object that holds more information on what to do
+     */
+    private void handlePatch(WebSocket webSocket, String type, JsonObject data) {
 
         switch (type) {
             case "track/vote":
-                String userID = jo.getAsJsonObject("data").get("userID").getAsString();
-                Byte vote = jo.getAsJsonObject("data").get("vote").getAsByte();
-                int id = jo.getAsJsonObject("data").get("id").getAsInt();
+                String userID = data.get("userID").getAsString();
+                Byte vote = data.get("vote").getAsByte();
+                int id = data.get("id").getAsInt();
 
                 Map<String, Byte> votes;
+                // TODO decide how to process the track currently playing
                 /*if (id == 0) {
                     votes = ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes();
                 } else {
@@ -176,25 +200,43 @@ public class Server extends WebSocketServer {
         }
     }
 
-    private void handlePost(WebSocket webSocket, String type, JsonObject jo) {
+    /**
+     * Implemented api endpoints:
+     *
+     * - queue/uri
+     * - player/control
+     *
+     * @param webSocket the websocket(connection) that send the msg
+     * @param type or api endpoint that should be reached
+     * @param data object that holds more information on what to do
+     */
+    private void handlePost(WebSocket webSocket, String type, JsonObject data) {
 
         switch (type) {
             case "queue/uri":
-                String uri = jo.getAsJsonObject("data").get("uri").getAsString();
-                AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, jo.getAsJsonObject("data")));
+                String uri = data.get("uri").getAsString();
+                AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, data.getAsJsonObject("data")));
                 break;
 
-            case "player/control/play":
-                AudioManager.getPlayer().setPaused(false);
-                break;
-
-            case "player/control/pause":
-                AudioManager.getPlayer().setPaused(true);
+            case "player/control":
+                AudioManager.getPlayer().setPaused(
+                        // Note that also 'stopped' and totally invalid parameters will set it to playing, but I guess that's ok
+                        data.get("status").toString().equals("paused")
+                );
                 break;
         }
     }
 
-    private void handleDelete(WebSocket webSocket, String type, JsonObject jo) {
+    /**
+     * Implemented api endpoints:
+     *
+     * none
+     *
+     * @param webSocket the websocket(connection) that send the msg
+     * @param type or api endpoint that should be reached
+     * @param data object that holds more information on what to do
+     */
+    private void handleDelete(WebSocket webSocket, String type, JsonObject data) {
     }
 
 
