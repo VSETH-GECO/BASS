@@ -102,9 +102,12 @@ public class Server extends WebSocketServer {
 
         } else {
             JsonObject jo = new JsonObject();
+            JsonObject data = new JsonObject();
+
+            data.addProperty("message", "Json parse error");
             jo.addProperty("method", "post");
             jo.addProperty("type", "error");
-            jo.addProperty("message", "Json parse error.");
+            jo.add("data", data);
 
             webSocket.send(gson.toJson(jo));
         }
