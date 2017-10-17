@@ -52,7 +52,7 @@ public class AudioConsumer extends Thread {
                 AudioPlayer player = AudioManager.getPlayer();
 
                 // We write as much data as we can to the audio output. This will completely fill it's buffer which
-                // contains approximately 1 second of audio data.
+                // contains approximately 0.1 second of audio data.
                 while (true) {
                     if (!player.isPaused()) {
                         if ((chunkSize = stream.read(buffer)) >= 0) {
