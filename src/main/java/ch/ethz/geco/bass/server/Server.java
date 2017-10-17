@@ -237,16 +237,6 @@ public class Server extends WebSocketServer {
     private void handleDelete(WebSocket webSocket, String type, JsonObject data) {
     }
 
-
-    private void broadcast(String text) {
-        Collection<WebSocket> con = connections();
-        synchronized (con) {
-            for (WebSocket c : con) {
-                c.send(text);
-            }
-        }
-    }
-
     public void broadcast(JsonObject jo) {
         broadcast(jo.toString());
     }
