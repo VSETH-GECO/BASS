@@ -142,12 +142,7 @@ public class Server extends WebSocketServer {
 
             case "player/current":
                 AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
-<<<<<<< HEAD
 
-                response.addProperty("method", "post");
-                response.addProperty("type", "player/current");
-                response.add("data", gson.toJsonTree(at));
-=======
                 responseData.addProperty("id", -1);
                 responseData.addProperty("title", at.getInfo().title);
                 responseData.addProperty("votes", ((AudioTrackMetaData) at.getUserData()).getVoteCount());
@@ -156,7 +151,7 @@ public class Server extends WebSocketServer {
                 response.addProperty("method", "post");
                 response.addProperty("type", "player/current");
                 response.add("data", responseData);
->>>>>>> feature/bermos
+
                 webSocket.send(response.toString());
 
                 break;
