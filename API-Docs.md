@@ -16,7 +16,7 @@ On connect
 ## Player
 
 ### Control
-Play/Pause
+Request change of player state (play/pause)
 ```json
 {
   "method": "patch",
@@ -29,19 +29,28 @@ Play/Pause
 
 
 ### Update
-Play/Pause/Stop
+Request update on current player state
+```json
+{
+  "method": "get",
+  "type": "player/control",
+  "data": null
+}
+```
+
+On player state change (playing/paused/stopped)
 ```json
 {
   "method": "post",
   "type": "player/control",
   "data": {
-    "state": "play"
+    "state": "playing"
   }
 }
 ```
 
 ### Track
-Get current track
+Request update on current track
 ```json
 {
   "method": "get",
@@ -51,10 +60,19 @@ Get current track
 ```
 
 ## Queue
-Get current queue
+Request update on current queue
 ```json
 {
   "method": "get",
+  "type": "queue/all",
+  "data": null
+}
+```
+
+On update queue
+```json
+{
+  "method": "post",
   "type": "queue/all",
   "data": [
     {
@@ -63,10 +81,14 @@ Get current queue
       "titel": "Hadbass from Russia",
       "votes": {
         "userID1": 1,
-        "userID2": -2
+        "userID2": -1,
+        "userID3": 0
       },
       "length": 50000,
       "position": 0
+    },
+    {
+      // Other track(s)
     }
   ]
 }
@@ -97,7 +119,7 @@ Vote on track
 }
 ```
 
-Update on track
+On update track
 ```json
 {
   "method": "patch",
