@@ -194,6 +194,14 @@ public class Server extends WebSocketServer {
                     votes.put(userID, vote);
 
                 break;
+
+
+            case "player/control":
+                AudioManager.getPlayer().setPaused(
+                        // Note that also 'stopped' and totally invalid parameters will set it to playing, but I guess that's ok
+                        data.get("status").getAsString().equals("paused")
+                );
+                break;
         }
     }
 
@@ -213,13 +221,6 @@ public class Server extends WebSocketServer {
             case "queue/uri":
                 String uri = data.get("uri").getAsString();
                 AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, data));
-                break;
-
-            case "player/control":
-                AudioManager.getPlayer().setPaused(
-                        // Note that also 'stopped' and totally invalid parameters will set it to playing, but I guess that's ok
-                        data.get("status").getAsString().equals("paused")
-                );
                 break;
         }
     }

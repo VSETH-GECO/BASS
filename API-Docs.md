@@ -33,7 +33,7 @@ Request update on current player state
 ```json
 {
   "method": "get",
-  "type": "player/control",
+  "type": "player/state",
   "data": null
 }
 ```
@@ -88,7 +88,7 @@ On update queue
       "position": 0
     },
     {
-      // Other track(s)
+      // Other track(s)3
     }
   ]
 }
