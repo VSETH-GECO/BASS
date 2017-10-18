@@ -138,7 +138,7 @@ public class Server extends WebSocketServer {
             case "player/current":
                 AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
 
-                responseData = (JsonObject) Main.GSON.toJsonTree(at, AudioTrack.class);
+                responseData = at != null ? (JsonObject) Main.GSON.toJsonTree(at, AudioTrack.class) : null;
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "player/current");
