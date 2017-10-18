@@ -1,5 +1,6 @@
 package ch.ethz.geco.bass.audio;
 
+import ch.ethz.geco.bass.audio.util.Playlist;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;

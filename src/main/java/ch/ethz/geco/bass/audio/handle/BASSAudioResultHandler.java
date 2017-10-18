@@ -2,8 +2,7 @@ package ch.ethz.geco.bass.audio.handle;
 
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
-import ch.ethz.geco.bass.audio.AudioTrackMetaData;
-import com.google.gson.Gson;
+import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;

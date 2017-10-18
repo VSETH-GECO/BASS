@@ -1,4 +1,4 @@
-package ch.ethz.geco.bass.audio;
+package ch.ethz.geco.bass.audio.util;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
@@ -9,14 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Represents a playlist
- * <p>
- * Requirements:
- * - The key of a track doesn't change.
- * - The map is sorted ascending by key (insertion order) and then descending by value (votes of an audio track).
- * <p>
- * Implementation:
- * - Changing votes reinserts the changed element.
+ * Represents a playlist.
  */
 public class Playlist {
     private final Comparator<AudioTrack> comparator = Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getTrackID()).reversed()

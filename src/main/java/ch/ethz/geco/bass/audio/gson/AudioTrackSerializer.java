@@ -1,6 +1,6 @@
 package ch.ethz.geco.bass.audio.gson;
 
-import ch.ethz.geco.bass.audio.AudioTrackMetaData;
+import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import com.google.gson.*;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;

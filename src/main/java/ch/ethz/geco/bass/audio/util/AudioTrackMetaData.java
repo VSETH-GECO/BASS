@@ -1,4 +1,4 @@
-package ch.ethz.geco.bass.audio;
+package ch.ethz.geco.bass.audio.util;
 
 import java.util.HashMap;
 import java.util.Map;

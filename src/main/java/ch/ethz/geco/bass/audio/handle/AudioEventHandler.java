@@ -2,7 +2,6 @@ package ch.ethz.geco.bass.audio.handle;
 
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
-import ch.ethz.geco.bass.audio.AudioTrackMetaData;
 import com.google.gson.JsonObject;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;

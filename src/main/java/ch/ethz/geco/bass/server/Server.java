@@ -2,8 +2,7 @@ package ch.ethz.geco.bass.server;
 
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
-import ch.ethz.geco.bass.audio.AudioTrackMetaData;
-import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
+import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 

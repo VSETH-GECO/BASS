@@ -5,7 +5,6 @@ import com.sedmelluq.discord.lavaplayer.format.AudioPlayerInputStream;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.plugin2.jvm.CircularByteBuffer;
 
 import javax.sound.sampled.*;
 import java.io.IOException;
