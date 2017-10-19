@@ -29,4 +29,25 @@ public class User {
     public void setName(String name) {
         this.name = name;
     }
+
+    /**
+     * Returns the ID of this user.
+     * @return the ID of this user
+     */
+    public String getUserID() {
+        return userID;
+    }
+
+    /**
+     * Returns the name of this user.
+     * @return the name of this user
+     */
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof User && userID.equals(((User) obj).getUserID());
+    }
 }
