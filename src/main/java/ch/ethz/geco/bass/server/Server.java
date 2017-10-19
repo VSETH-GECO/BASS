@@ -14,6 +14,7 @@ import org.java_websocket.server.WebSocketServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -27,6 +28,26 @@ import java.util.Map;
  * interface.
  */
 public class Server extends WebSocketServer {
+    public void stopSocket() {
+        // Inform connections about stopping the playback
+        JsonObject jo = new JsonObject();
+        JsonObject data = new JsonObject();
+
+        data.addProperty("state", "stopped");
+
+        jo.addProperty("method", "post");
+        jo.addProperty("type", "player/control");
+        jo.add("data", data);
+        broadcast(jo);
+
+        // Shutdown socket to free port
+        try {
+            this.stop();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     enum Method {get, post, patch, delete}
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
@@ -199,7 +220,7 @@ public class Server extends WebSocketServer {
             case "player/control":
                 AudioManager.getPlayer().setPaused(
                         // Note that also 'stopped' and totally invalid parameters will set it to playing, but I guess that's ok
-                        data.get("status").getAsString().equals("paused")
+                        data.get("state").getAsString().equals("pause")
                 );
                 break;
         }
@@ -235,6 +256,11 @@ public class Server extends WebSocketServer {
      * @param data object that holds more information on what to do
      */
     private void handleDelete(WebSocket webSocket, String type, JsonObject data) {
+
+    }
+
+    public Server getThis() {
+        return this;
     }
 
     public void broadcast(JsonObject jo) {

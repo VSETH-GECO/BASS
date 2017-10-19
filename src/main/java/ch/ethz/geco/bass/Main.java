@@ -1,11 +1,13 @@
 package ch.ethz.geco.bass;
 
 import ch.ethz.geco.bass.audio.AudioConsumer;
+import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
 import ch.ethz.geco.bass.server.Server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,5 +38,7 @@ public class Main {
         AudioConsumer audioConsumer = new AudioConsumer();
         audioConsumer.setName("AudioConsumer");
         audioConsumer.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> server.stopSocket()));
     }
 }
