@@ -32,7 +32,8 @@ public class AudioTrackSerializer implements JsonSerializer<AudioTrack> {
         jsonTrack.addProperty("uri", info.uri);
         jsonTrack.addProperty("userID", metaData.getUserID());
         jsonTrack.addProperty("title", info.title);
-        jsonTrack.add("votes", votes);
+        jsonTrack.add("voters", votes);
+        jsonTrack.addProperty("votes", metaData.getVoteCount());
         jsonTrack.addProperty("length", info.length);
         jsonTrack.addProperty("position", src.getPosition());
 

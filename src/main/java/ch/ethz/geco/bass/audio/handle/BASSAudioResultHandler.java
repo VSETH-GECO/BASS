@@ -33,6 +33,9 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         AudioTrackMetaData metaData = new AudioTrackMetaData(trackCount.getAndIncrement(), jo.get("userID").getAsString());
         audioTrack.setUserData(metaData);
 
+        // Queue track
+        AudioManager.getScheduler().queue(audioTrack);
+
         // Reply to user
         JsonObject response = new JsonObject();
         response.addProperty("method", "post");
@@ -42,8 +45,6 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
 
         // Inform all connected users
         updatePlaylistForUsers();
-
-        AudioManager.getScheduler().queue(audioTrack);
     }
 
     @Override
@@ -86,7 +87,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         JsonObject response = new JsonObject();
 
         Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
-        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist(), listType);
+        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
 
         response.addProperty("method", "post");
         response.addProperty("type", "queue/all");
