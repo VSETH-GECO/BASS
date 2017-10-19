@@ -1,5 +1,7 @@
 package ch.ethz.geco.bass.audio.util;
 
+import ch.ethz.geco.bass.Main;
+import com.google.gson.JsonObject;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
 import java.util.ArrayList;
@@ -57,8 +59,21 @@ public class Playlist {
     public AudioTrack poll() {
         synchronized (trackSet) {
             synchronized (sortedPlaylist) {
-                if (sortedPlaylist.isEmpty())
+                if (sortedPlaylist.isEmpty()) {
+                    // Broadcast to users
+                    JsonObject jo = new JsonObject();
+                    JsonObject data = new JsonObject();
+
+                    data.addProperty("state", "stopped");
+
+                    jo.addProperty("method", "post");
+                    jo.addProperty("type", "player/control");
+                    jo.add("data", data);
+
+                    Main.server.broadcast(jo);
+
                     return null;
+                }
                 AudioTrack track = sortedPlaylist.remove(0);
                 trackSet.remove(((AudioTrackMetaData) track.getUserData()).getTrackID());
                 return track;

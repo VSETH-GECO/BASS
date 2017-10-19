@@ -42,8 +42,9 @@ public class Server extends WebSocketServer {
 
         // Shutdown socket to free port
         try {
-            this.stop();
-        } catch (IOException | InterruptedException e) {
+            this.setReuseAddr(true);
+            this.stop(1000);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -147,7 +148,7 @@ public class Server extends WebSocketServer {
         switch (type) {
             case "queue/all":
                 Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
-                JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist(), listType);
+                JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
 
                 response.addProperty("method", "post");
                 response.addProperty("type", "queue/all");
@@ -197,22 +198,15 @@ public class Server extends WebSocketServer {
             case "track/vote":
                 String userID = data.get("userID").getAsString();
                 Byte vote = data.get("vote").getAsByte();
-                int id = data.get("id").getAsInt();
+                int trackID = data.get("id").getAsInt();
 
-                Map<String, Byte> votes;
-                // TODO decide how to process the track currently playing
-                /*if (id == 0) {
-                    votes = ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes();
-                } else {
-                    votes = ((AudioTrackMetaData) AudioManager.getScheduler().getPlaylist().get(id).getUserData()).getVotes();
-                }*/
-                votes = ((AudioTrackMetaData) AudioManager.getScheduler().getPlaylist().get(id).getUserData()).getVotes();
-
-
-                if (votes.containsKey(userID))
-                    votes.replace(userID, vote);
-                else
-                    votes.put(userID, vote);
+                if (vote <= 1 && vote >= -1) {
+                    if (trackID == 0) {
+                        ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes().put(userID, vote);
+                    } else {
+                        AudioManager.getScheduler().getPlaylist().setVote(trackID, userID, vote);
+                    }
+                }
 
                 break;
 
@@ -257,10 +251,6 @@ public class Server extends WebSocketServer {
      */
     private void handleDelete(WebSocket webSocket, String type, JsonObject data) {
 
-    }
-
-    public Server getThis() {
-        return this;
     }
 
     public void broadcast(JsonObject jo) {
