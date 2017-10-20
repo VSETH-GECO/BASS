@@ -18,8 +18,9 @@ public class User {
      * Creates a new user with the given unique ID.
      * @param userID the unique ID of the user
      */
-    public User(String userID) {
+    public User(String userID, String name) {
         this.userID = userID;
+        this.name = name;
     }
 
     /**
