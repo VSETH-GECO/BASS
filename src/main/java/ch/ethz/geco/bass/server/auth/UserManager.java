@@ -48,32 +48,31 @@ public class UserManager {
      * @param ws   The web socket which tried to login
      * @param user the user name
      * @param pw   the password
-     * @return a valid session token success or null otherwise
      */
     public static void login(WebSocket ws, String user, String pw) {
-        if (!isLoggedIn(user)) {
-            try {
-                Connection con = SQLite.getConnection();
+        try {
+            Connection con = SQLite.getConnection();
 
-                // Get hashed password
-                PreparedStatement statement = con.prepareStatement("SELECT * FROM Users WHERE Username = ?");
-                statement.setString(1, user);
-                ResultSet result = statement.executeQuery();
-                String hash = result.getString("Password");
+            // Get hashed password
+            PreparedStatement statement = con.prepareStatement("SELECT * FROM Users WHERE Username = ?;");
+            statement.setString(1, user);
+            ResultSet result = statement.executeQuery();
+            String hash = result.getString("Password");
 
-                if (BCrypt.checkpw(pw, hash)) {
-                    String token = UUID.randomUUID().toString();
-                    validSessions.put(token, new User(("" + result.getInt("ID")), user));
+            if (BCrypt.checkpw(pw, hash)) {
+                // Logout old session if existing
+                logout(user);
 
-                    // TODO: Send session token to interface
-                } else {
-                    // TODO: Send wrong password notification
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+                String token = UUID.randomUUID().toString();
+                validSessions.put(token, new User(("" + result.getInt("ID")), user));
+
+                // TODO: Send session token to interface
+            } else {
+                // TODO: Send wrong password notification
             }
-        } else {
-            // TODO: Send already logged in notification
+        } catch (SQLException e) {
+            // TODO: Send internal error notification
+            e.printStackTrace();
         }
     }
 
@@ -81,41 +80,69 @@ public class UserManager {
      * Tries to register a new user. Returns true if the registration was successful, false otherwise.
      * It could fail because of duplicate user names or internal errors.
      *
-     * @param ws   The web socket which tried to register a new user
+     * @param ws   The web socket which wants to register a new user
      * @param user The user name
      * @param pw   The password
-     * @return true on success, false otherwise
      */
-    public static boolean register(WebSocket ws, String user, String pw) {
+    public static void register(WebSocket ws, String user, String pw) {
         try {
             Connection con = SQLite.getConnection();
-            PreparedStatement statement = con.prepareStatement("SELECT * FROM Users WHERE Username = ?");
-            statement.setString(1, user);
-            ResultSet result = statement.executeQuery();
+            PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Users WHERE Username = ?;");
+            queryStatement.setString(1, user);
+            ResultSet result = queryStatement.executeQuery();
 
-            // Check if we found a row
+            // Check if there is already a user with that name
             if (!result.next()) {
+                PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Users VALUES (?, ?)");
+                insertStatement.setString(1, user);
+                insertStatement.setString(2, pw);
+                insertStatement.executeUpdate();
 
+                // TODO: Send registration successful notification
             } else {
                 // TODO: Send name already taken notification
             }
         } catch (SQLException e) {
+            // TODO: Send internal error notification
             e.printStackTrace();
         }
-
-        return false;
     }
 
     /**
-     * Checks if the given user is currently logged in.
+     * Tries to delete the given user. Only works in combination with a valid session for that user.
+     * Do NOT call this function without checking if the user has a valid session.
      *
-     * @param user the user to check
-     * @return if the given user is currently logged in
+     * @param ws     The web socket which wants to delete a user
+     * @param userID The user ID of the user to delete
+     * @param token  A valid session token for the given user
      */
-    private static boolean isLoggedIn(String user) {
+    public static void delete(WebSocket ws, String userID, String token) {
+        if (isValidSession(token, userID)) {
+            try {
+                Connection con = SQLite.getConnection();
+                PreparedStatement deleteStatement = con.prepareStatement("DELETE * FROM Users WHERE ID = ?;");
+                deleteStatement.setString(1, userID);
+                deleteStatement.executeUpdate();
+
+                // TODO: Send account successfully deleted notification
+            } catch (SQLException e) {
+                // TODO: Send internal error notification
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Performs a logout on the given user by removing it's session from the list of valid sessions.
+     *
+     * @param user the user to logout
+     * @return true if the logout was successful, false if the given user was not logged in
+     */
+    private static boolean logout(String user) {
         boolean isLoggedIn = false;
-        for (User activeUser : validSessions.values()) {
-            if (activeUser.getName().equals(user)) {
+        for (Map.Entry<String, User> curEntry : validSessions.entrySet()) {
+            if (curEntry.getValue().getName().equals(user)) {
+                validSessions.remove(curEntry.getKey());
                 isLoggedIn = true;
             }
         }
@@ -131,6 +158,7 @@ public class UserManager {
      * @return if the token is valid
      */
     public static boolean isValidSession(String token, String userID) {
-        return validSessions.get(token).getUserID().equals(userID);
+        User user = validSessions.get(token);
+        return user != null && user.getUserID().equals(userID);
     }
 }
