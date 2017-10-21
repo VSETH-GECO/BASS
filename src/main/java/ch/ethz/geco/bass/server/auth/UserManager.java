@@ -1,5 +1,6 @@
 package ch.ethz.geco.bass.server.auth;
 
+import ch.ethz.geco.bass.util.ErrorHandler;
 import ch.ethz.geco.bass.util.SQLite;
 import org.java_websocket.WebSocket;
 import org.mindrot.jbcrypt.BCrypt;
@@ -38,7 +39,7 @@ public class UserManager {
                 logger.debug("User table already exists.");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            ErrorHandler.handleLocal(e);
         }
     }
 
@@ -71,8 +72,7 @@ public class UserManager {
                 // TODO: Send wrong password notification
             }
         } catch (SQLException e) {
-            // TODO: Send internal error notification
-            e.printStackTrace();
+            ErrorHandler.handleRemote(e, ws);
         }
     }
 
@@ -103,8 +103,7 @@ public class UserManager {
                 // TODO: Send name already taken notification
             }
         } catch (SQLException e) {
-            // TODO: Send internal error notification
-            e.printStackTrace();
+            ErrorHandler.handleRemote(e, ws);
         }
     }
 
@@ -126,8 +125,7 @@ public class UserManager {
 
                 // TODO: Send account successfully deleted notification
             } catch (SQLException e) {
-                // TODO: Send internal error notification
-                e.printStackTrace();
+                ErrorHandler.handleRemote(e, ws);
             }
         }
     }

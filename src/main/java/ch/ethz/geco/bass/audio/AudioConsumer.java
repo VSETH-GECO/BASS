@@ -1,5 +1,6 @@
 package ch.ethz.geco.bass.audio;
 
+import ch.ethz.geco.bass.util.ErrorHandler;
 import com.sedmelluq.discord.lavaplayer.format.AudioDataFormat;
 import com.sedmelluq.discord.lavaplayer.format.AudioPlayerInputStream;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -73,10 +74,10 @@ public class AudioConsumer extends Thread {
                     }
                 }
             } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+                ErrorHandler.handleLocal(e);
             }
         } catch (LineUnavailableException e) {
-            e.printStackTrace();
+            ErrorHandler.handleLocal(e);
         }
     }
 }

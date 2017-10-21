@@ -4,6 +4,7 @@ import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
+import ch.ethz.geco.bass.util.ErrorHandler;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -43,7 +44,7 @@ public class Server extends WebSocketServer {
             this.setReuseAddr(true);
             this.stop(1000);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            ErrorHandler.handleLocal(e);
         }
     }
 
