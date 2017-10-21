@@ -29,17 +29,12 @@ public class AudioConsumer extends Thread {
      */
     public static final short OUTPUT_BUFFER_CHUNK_COUNT = 5;
 
-    /**
-     * The audio output line.
-     */
-    private static SourceDataLine output;
-
     @Override
     public void run() {
         AudioInputStream stream = AudioPlayerInputStream.createStream(AudioManager.getPlayer(), outputFormat, outputFormat.frameDuration(), true);
         SourceDataLine.Info info = new DataLine.Info(SourceDataLine.class, stream.getFormat());
         try {
-            output = (SourceDataLine) AudioSystem.getLine(info);
+            SourceDataLine output = (SourceDataLine) AudioSystem.getLine(info);
             output.open(stream.getFormat(), outputFormat.bufferSize(2) * OUTPUT_BUFFER_CHUNK_COUNT);
 
             output.start();

@@ -23,9 +23,7 @@ public class AudioManager {
      */
     private static final TrackScheduler scheduler = new TrackScheduler(player);
 
-    /**
-     * Initialize static variables
-     */
+    // Initialize static variables
     static {
         player.addListener(scheduler);
         player.addListener(new AudioEventHandler());

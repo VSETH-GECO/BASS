@@ -56,10 +56,6 @@ public class SQLite {
         logger.debug("Checking if table exists: " + table);
         Connection connection = getConnection();
         ResultSet tables = connection.getMetaData().getTables(null, null, table.toUpperCase(), null);
-        if (tables.next()) {
-            return true;
-        } else {
-            return false;
-        }
+        return tables.next();
     }
 }
