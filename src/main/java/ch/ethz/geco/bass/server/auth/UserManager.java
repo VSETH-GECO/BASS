@@ -45,7 +45,7 @@ public class UserManager {
     /**
      * Tries to login a user with the give credentials and return a valid session token on success. If it fails, this will return null.
      *
-     * @param ws   The web socket which tried to login
+     * @param ws   the web socket which tried to login
      * @param user the user name
      * @param pw   the password
      */
@@ -80,9 +80,9 @@ public class UserManager {
      * Tries to register a new user. Returns true if the registration was successful, false otherwise.
      * It could fail because of duplicate user names or internal errors.
      *
-     * @param ws   The web socket which wants to register a new user
-     * @param user The user name
-     * @param pw   The password
+     * @param ws   the web socket which wants to register a new user
+     * @param user the user name
+     * @param pw   the password
      */
     public static void register(WebSocket ws, String user, String pw) {
         try {
@@ -112,9 +112,9 @@ public class UserManager {
      * Tries to delete the given user. Only works in combination with a valid session for that user.
      * Do NOT call this function without checking if the user has a valid session.
      *
-     * @param ws     The web socket which wants to delete a user
-     * @param userID The user ID of the user to delete
-     * @param token  A valid session token for the given user
+     * @param ws     the web socket which wants to delete a user
+     * @param userID the user ID of the user to delete
+     * @param token  a valid session token for the given user
      */
     public static void delete(WebSocket ws, String userID, String token) {
         if (isValidSession(token, userID)) {
