@@ -47,7 +47,8 @@ public class UserManager {
     }
 
     /**
-     * Tries to login a user with the give credentials and return a valid session token on success. If it fails, this will return null.
+     * Tries to login a user with the given credentials and return a valid session token to the given web socket on success.
+     * If it fails, it will send appropriate error messages to the given web socket.
      *
      * @param ws   the web socket which tried to login
      * @param user the user name
@@ -80,7 +81,7 @@ public class UserManager {
     }
 
     /**
-     * Tries to register a new user. Returns true if the registration was successful, false otherwise.
+     * Tries to register a new user. Responds to the given web socket if the operation was successful.
      * It could fail because of duplicate user names or internal errors.
      *
      * @param ws   the web socket which wants to register a new user
@@ -112,6 +113,7 @@ public class UserManager {
 
     /**
      * Tries to delete the given user. Only works in combination with a valid session token for that user.
+     * Responds to the given web socket if the operation was successful.
      *
      * @param ws     the web socket which wants to delete a user
      * @param userID the user ID of the user to delete
