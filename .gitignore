@@ -1,4 +1,8 @@
+# IntelliJ Stuff
 .idea/
 target/
+*.iml
 cache/
+
+# BASS Stuff
 *.db
