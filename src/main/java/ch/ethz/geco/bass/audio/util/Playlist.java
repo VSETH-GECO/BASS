@@ -84,7 +84,9 @@ public class Playlist {
      * @return a sorted list of all audio tracks
      */
     public List<AudioTrack> getSortedList() {
-        return sortedPlaylist;
+        synchronized (this) {
+            return sortedPlaylist;
+        }
     }
 
     /**
@@ -127,9 +129,9 @@ public class Playlist {
 
             sortedPlaylist = new ArrayList<>(Arrays.asList(tracks));
 
+            // FIXME: duplicate code, find a way to be able to call specific requests when needed.
             // Broadcast queue/all response
-            Type listType = new TypeToken<List<AudioTrack>>() {
-            }.getType();
+            Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
             JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
 
             JsonObject response = new JsonObject();
