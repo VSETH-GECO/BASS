@@ -1,13 +1,14 @@
 package ch.ethz.geco.bass.audio.util;
 
 import ch.ethz.geco.bass.Main;
+import ch.ethz.geco.bass.audio.AudioManager;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.lang.reflect.Type;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,20 +35,18 @@ public class Playlist {
      * @return true on success, false if the track is already in the playlist
      */
     public boolean add(AudioTrack track) {
-        synchronized (trackSet) {
-            synchronized (sortedPlaylist) {
-                Integer trackID = ((AudioTrackMetaData) track.getUserData()).getTrackID();
-                if (trackSet.putIfAbsent(trackID, track) == null) {
-                    if (sortedPlaylist.add(track)) {
-                        resort();
-                        return true;
-                    } else {
-                        trackSet.remove(trackID);
-                    }
+        synchronized (this) {
+            Integer trackID = ((AudioTrackMetaData) track.getUserData()).getTrackID();
+            if (trackSet.putIfAbsent(trackID, track) == null) {
+                if (sortedPlaylist.add(track)) {
+                    resort();
+                    return true;
+                } else {
+                    trackSet.remove(trackID);
                 }
-
-                return false;
             }
+
+            return false;
         }
     }
 
@@ -57,27 +56,25 @@ public class Playlist {
      * @return the next track in order, or null if the playlist is empty
      */
     public AudioTrack poll() {
-        synchronized (trackSet) {
-            synchronized (sortedPlaylist) {
-                if (sortedPlaylist.isEmpty()) {
-                    // Broadcast to users
-                    JsonObject jo = new JsonObject();
-                    JsonObject data = new JsonObject();
+        synchronized (this) {
+            if (sortedPlaylist.isEmpty()) {
+                // Broadcast to users
+                JsonObject jo = new JsonObject();
+                JsonObject data = new JsonObject();
 
-                    data.addProperty("state", "stopped");
+                data.addProperty("state", "stopped");
 
-                    jo.addProperty("method", "post");
-                    jo.addProperty("type", "player/control");
-                    jo.add("data", data);
+                jo.addProperty("method", "post");
+                jo.addProperty("type", "player/control");
+                jo.add("data", data);
 
-                    Main.server.broadcast(jo);
+                Main.server.broadcast(jo);
 
-                    return null;
-                }
-                AudioTrack track = sortedPlaylist.remove(0);
-                trackSet.remove(((AudioTrackMetaData) track.getUserData()).getTrackID());
-                return track;
+                return null;
             }
+            AudioTrack track = sortedPlaylist.remove(0);
+            trackSet.remove(((AudioTrackMetaData) track.getUserData()).getTrackID());
+            return track;
         }
     }
 
@@ -96,8 +93,8 @@ public class Playlist {
      * vote = 0 means that the vote gets removed for that user.
      *
      * @param trackID the ID of the track
-     * @param userID the ID of the user who voted
-     * @param vote the vote
+     * @param userID  the ID of the user who voted
+     * @param vote    the vote
      */
     public void setVote(Integer trackID, String userID, Byte vote) {
         AudioTrack track = trackSet.get(trackID);
@@ -113,11 +110,33 @@ public class Playlist {
      * Resorts the playlist
      */
     public void resort() {
-        synchronized (trackSet) {
-            synchronized (sortedPlaylist) {
-                sortedPlaylist = (ArrayList<AudioTrack>) sortedPlaylist.stream().sorted(comparator).collect(Collectors.toList()); // FIXME: Performance can be improved by using insertion or bubble sort
-                // TODO: Broadcast change in WS Server
+        synchronized (this) {
+            // Insertion sort the playlist
+            AudioTrack[] tracks = ((AudioTrack[]) sortedPlaylist.toArray());
+            int i = 1;
+            while (i < tracks.length) {
+                AudioTrack x = tracks[i];
+                int j = i;
+                while (j >= 0 && comparator.compare(tracks[j], x) > 0) {
+                    tracks[j + 1] = tracks[j];
+                    j--;
+                }
+                tracks[j + 1] = x;
+                i++;
             }
+
+            sortedPlaylist = new ArrayList<>(Arrays.asList(tracks));
+
+            // Broadcast queue/all response
+            Type listType = new TypeToken<List<AudioTrack>>() {
+            }.getType();
+            JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
+
+            JsonObject response = new JsonObject();
+            response.addProperty("method", "post");
+            response.addProperty("type", "queue/all");
+            response.add("data", trackList);
+            Main.server.broadcast(response);
         }
     }
 }
