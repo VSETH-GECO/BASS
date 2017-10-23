@@ -7,7 +7,7 @@ public class User {
     /**
      * The ID of the user.
      */
-    private final String userID;
+    private final Integer userID;
 
     /**
      * The username.
@@ -18,7 +18,7 @@ public class User {
      * Creates a new user with the given unique ID.
      * @param userID the unique ID of the user
      */
-    public User(String userID, String name) {
+    public User(Integer userID, String name) {
         this.userID = userID;
         this.name = name;
     }
@@ -35,7 +35,7 @@ public class User {
      * Returns the ID of this user.
      * @return the ID of this user
      */
-    public String getUserID() {
+    public Integer getUserID() {
         return userID;
     }
 

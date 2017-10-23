@@ -1,8 +1,8 @@
 package ch.ethz.geco.bass.server.auth;
 
+import ch.ethz.geco.bass.server.AuthWebSocket;
 import ch.ethz.geco.bass.util.ErrorHandler;
 import ch.ethz.geco.bass.util.SQLite;
-import org.java_websocket.WebSocket;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,9 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Manages the handling of users. This includes authorization, account management, and session handling.
@@ -24,59 +22,86 @@ public class UserManager {
      */
     private static final Logger logger = LoggerFactory.getLogger(UserManager.class);
 
-    /**
-     * Holds a mapping of the currently open sessions to the user who opened the session.
-     */
-    private static final Map<String, User> validSessions = new HashMap<>();
-
     // Check database integrity
     static {
         try {
+            Connection con = SQLite.getConnection();
+
             if (!SQLite.tableExists("Users")) {
                 logger.debug("User table does not exist, creating...");
-                Connection con = SQLite.getConnection();
-                PreparedStatement statement = con.prepareStatement("CREATE TABLE Users (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Password TEXT NOT NULL)");
+                PreparedStatement statement = con.prepareStatement("CREATE TABLE Users (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Password TEXT NOT NULL);");
                 statement.execute();
                 logger.debug("User table created!");
             } else {
                 logger.debug("User table already exists.");
             }
+
+            if (!SQLite.tableExists("Sessions")) {
+                logger.debug("Sessions table does not exist, creating...");
+                PreparedStatement statement = con.prepareStatement("CREATE TABLE Sessions (UserID INTEGER NOT NULL, Token TEXT NOT NULL, Valid DATETIME NOT NULL, FOREIGN KEY(UserID) REFERENCES Users(ID));");
+                statement.execute();
+                logger.debug("Sessions table created!");
+            } else {
+                logger.debug("Sessions table already exists.");
+            }
         } catch (SQLException e) {
             ErrorHandler.handleLocal(e);
         }
+
+        // Periodically remove old session tokens every minute
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                deleteExpiredSessions();
+            }
+        }, 60000, 60000);
+
+        logger.info("Started periodic session token cleanup!");
     }
 
     /**
      * Tries to login a user with the given credentials and return a valid session token to the given web socket on success.
-     * If it fails, it will send appropriate error messages to the given web socket.
+     * If it fails, it will send appropriate error messages to the given web socket. This function will generate a new session token,
+     * which is valid for one day, for each call. Like this, you can connect multiple times with the same account.
      *
-     * @param ws   the web socket which tried to login
-     * @param user the user name
-     * @param pw   the password
+     * @param webSocket the web socket which wants to login
+     * @param userName  the user name
+     * @param password  the password
      */
-    public static void login(WebSocket ws, String user, String pw) {
+    public static void login(AuthWebSocket webSocket, String userName, String password) {
         try {
             Connection con = SQLite.getConnection();
 
             // Get hashed password
-            PreparedStatement statement = con.prepareStatement("SELECT * FROM Users WHERE Username = ?;");
-            statement.setString(1, user);
-            ResultSet result = statement.executeQuery();
-            String hash = result.getString("Password");
+            PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Users WHERE Name = ?;");
+            queryStatement.setString(1, userName);
+            ResultSet queryResult = queryStatement.executeQuery();
 
-            if (BCrypt.checkpw(pw, hash)) {
-                // Logout old session if existing
-                logout(user);
+            // Check if we found any rows
+            if (queryResult.next()) {
+                String hash = queryResult.getString("Password");
+                if (BCrypt.checkpw(password, hash)) {
+                    String token = UUID.randomUUID().toString();
+                    Integer userID = queryResult.getInt("ID");
 
-                String token = UUID.randomUUID().toString();
-                validSessions.put(token, new User(("" + result.getInt("ID")), user));
+                    // Add a new session token to the database which is valid for one day
+                    PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Sessions VALUES (?,?, datetime('now', '+1 day'));");
+                    insertStatement.setInt(1, userID);
+                    insertStatement.setString(2, token);
+                    insertStatement.executeUpdate();
 
-                // TODO: Send session token to interface
+                    User user = new User(userID, userName);
+                    webSocket.setAuthorizedUser(user);
+
+                    // TODO: Send session token to interface
+                } else {
+                    // TODO: Send wrong password notification
+                }
             } else {
-                // TODO: Send wrong password notification
+                // TODO: Send account not found notification
             }
         } catch (SQLException e) {
-            ErrorHandler.handleRemote(e, ws);
+            ErrorHandler.handleRemote(e, webSocket);
         }
     }
 
@@ -84,22 +109,22 @@ public class UserManager {
      * Tries to register a new user. Responds to the given web socket if the operation was successful.
      * It could fail because of duplicate user names or internal errors.
      *
-     * @param ws   the web socket which wants to register a new user
-     * @param user the user name
-     * @param pw   the password
+     * @param webSocket the web socket which wants to register a new user
+     * @param userName  the user name
+     * @param password  the password
      */
-    public static void register(WebSocket ws, String user, String pw) {
+    public static void register(AuthWebSocket webSocket, String userName, String password) {
         try {
             Connection con = SQLite.getConnection();
-            PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Users WHERE Username = ?;");
-            queryStatement.setString(1, user);
+            PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Users WHERE Name = ?;");
+            queryStatement.setString(1, userName);
             ResultSet result = queryStatement.executeQuery();
 
             // Check if there is already a user with that name
             if (!result.next()) {
                 PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Users VALUES (?, ?)");
-                insertStatement.setString(1, user);
-                insertStatement.setString(2, pw);
+                insertStatement.setString(1, userName);
+                insertStatement.setString(2, password);
                 insertStatement.executeUpdate();
 
                 // TODO: Send registration successful notification
@@ -107,62 +132,59 @@ public class UserManager {
                 // TODO: Send name already taken notification
             }
         } catch (SQLException e) {
-            ErrorHandler.handleRemote(e, ws);
+            ErrorHandler.handleRemote(e, webSocket);
         }
     }
 
     /**
-     * Tries to delete the given user. Only works in combination with a valid session token for that user.
-     * Responds to the given web socket if the operation was successful.
+     * Tries to delete the given user. Responds to the given web socket if the operation was successful.
      *
-     * @param ws     the web socket which wants to delete a user
-     * @param userID the user ID of the user to delete
-     * @param token  a valid session token for the given user
+     * @param webSocket the web socket which wants to delete a user
+     * @param userID    the user ID of the user to delete
      */
-    public static void delete(WebSocket ws, String userID, String token) {
-        if (isValidSession(token, userID)) {
-            try {
-                Connection con = SQLite.getConnection();
-                PreparedStatement deleteStatement = con.prepareStatement("DELETE * FROM Users WHERE ID = ?;");
-                deleteStatement.setString(1, userID);
-                deleteStatement.executeUpdate();
+    public static void delete(AuthWebSocket webSocket, String userID) {
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Users WHERE ID = ?;");
+            deleteStatement.setString(1, userID);
+            deleteStatement.executeUpdate();
 
-                // TODO: Send account successfully deleted notification
-            } catch (SQLException e) {
-                ErrorHandler.handleRemote(e, ws);
+            // TODO: Send account successfully deleted notification
+        } catch (SQLException e) {
+            ErrorHandler.handleRemote(e, webSocket);
+        }
+    }
+
+    /**
+     * Deletes a specific session token from the database.
+     *
+     * @param token the token to delete
+     */
+    private static void deleteSessionToken(String token) {
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Sessions WHERE Token = ?;");
+            deleteStatement.setString(1, token);
+            deleteStatement.executeUpdate();
+        } catch (SQLException e) {
+            ErrorHandler.handleLocal(e);
+        }
+    }
+
+    /**
+     * Deletes old session tokens in the database.
+     */
+    private static void deleteExpiredSessions() {
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Sessions WHERE Valid < datetime('now');");
+            int removedSessions = deleteStatement.executeUpdate();
+
+            if (removedSessions > 0) {
+                logger.info("Removed " + removedSessions + " expired Sessions.");
             }
-        } else {
-            // TODO: Send unauthorized notification
+        } catch (SQLException e) {
+            ErrorHandler.handleLocal(e);
         }
-    }
-
-    /**
-     * Performs a logout on the given user by removing it's session from the list of valid sessions.
-     *
-     * @param user the user to logout
-     * @return true if the logout was successful, false if the given user was not logged in
-     */
-    private static boolean logout(String user) {
-        boolean wasLoggedIn = false;
-        for (Map.Entry<String, User> curEntry : validSessions.entrySet()) {
-            if (curEntry.getValue().getName().equals(user)) {
-                validSessions.remove(curEntry.getKey());
-                wasLoggedIn = true;
-            }
-        }
-
-        return wasLoggedIn;
-    }
-
-    /**
-     * Returns whether or not the given session token is valid in combination with the given user.
-     *
-     * @param token  the session token to check
-     * @param userID the ID of the user
-     * @return if the token is valid
-     */
-    public static boolean isValidSession(String token, String userID) {
-        User user = validSessions.get(token);
-        return user != null && user.getUserID().equals(userID);
     }
 }

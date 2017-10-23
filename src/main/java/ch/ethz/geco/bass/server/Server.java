@@ -4,6 +4,7 @@ import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
+import ch.ethz.geco.bass.server.auth.UserManager;
 import ch.ethz.geco.bass.util.ErrorHandler;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
@@ -26,7 +27,7 @@ import java.util.List;
  * requests to modify the queue. Maybe even provide a web-
  * interface.
  */
-public class Server extends WebSocketServer {
+public class Server extends AuthWebSocketServer {
     public void stopSocket() {
         // Inform connections about stopping the playback
         JsonObject jo = new JsonObject();
@@ -57,7 +58,7 @@ public class Server extends WebSocketServer {
     }
 
     @Override
-    public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
+    public void onOpen(AuthWebSocket webSocket, ClientHandshake clientHandshake) {
         logger.info(webSocket.getRemoteSocketAddress().getHostString() + " connected!");
 
         JsonObject jo = new JsonObject();
@@ -69,12 +70,12 @@ public class Server extends WebSocketServer {
     }
 
     @Override
-    public void onClose(WebSocket webSocket, int i, String s, boolean b) {
+    public void onClose(AuthWebSocket webSocket, int i, String s, boolean b) {
         logger.info(webSocket.getRemoteSocketAddress().getHostString() + " disconnected!");
     }
 
     @Override
-    public void onError(WebSocket webSocket, Exception e) {
+    public void onError(AuthWebSocket webSocket, Exception e) {
         e.printStackTrace();
     }
 
@@ -84,7 +85,7 @@ public class Server extends WebSocketServer {
     }
 
     @Override
-    public void onMessage(WebSocket webSocket, String msg) {
+    public void onMessage(AuthWebSocket webSocket, String msg) {
         logger.debug("Message from (" + webSocket.getRemoteSocketAddress().getHostString() + "): " + msg);
 
         JsonParser jp = new JsonParser();
@@ -96,7 +97,6 @@ public class Server extends WebSocketServer {
 
             Method method = Method.valueOf(wsPacket.get("method").getAsString());
             String type = wsPacket.get("type").getAsString();
-
 
             switch (method) {
                 case get:
@@ -140,7 +140,7 @@ public class Server extends WebSocketServer {
      * @param type      or api endpoint that should be reached
      * @param data      object that holds more information on what to do
      */
-    private void handleGet(WebSocket webSocket, String type, JsonObject data) {
+    private void handleGet(AuthWebSocket webSocket, String type, JsonObject data) {
         JsonObject responseData = new JsonObject();
         JsonObject response = new JsonObject();
 
@@ -191,7 +191,7 @@ public class Server extends WebSocketServer {
      * @param type      or api endpoint that should be reached
      * @param data      object that holds more information on what to do
      */
-    private void handlePatch(WebSocket webSocket, String type, JsonObject data) {
+    private void handlePatch(AuthWebSocket webSocket, String type, JsonObject data) {
 
         switch (type) {
             case "track/vote":
@@ -229,7 +229,7 @@ public class Server extends WebSocketServer {
      * @param type      or api endpoint that should be reached
      * @param data      object that holds more information on what to do
      */
-    private void handlePost(WebSocket webSocket, String type, JsonObject data) {
+    private void handlePost(AuthWebSocket webSocket, String type, JsonObject data) {
 
         switch (type) {
             case "queue/uri":
@@ -248,7 +248,7 @@ public class Server extends WebSocketServer {
      * @param type      or api endpoint that should be reached
      * @param data      object that holds more information on what to do
      */
-    private void handleDelete(WebSocket webSocket, String type, JsonObject data) {
+    private void handleDelete(AuthWebSocket webSocket, String type, JsonObject data) {
 
     }
 
