@@ -131,14 +131,14 @@ public class Server extends WebSocketServer {
 
     /**
      * Implemented api endpoints:
-     *
+     * <p>
      * - queue/all
      * - player/current
      * - player/state
      *
      * @param webSocket the websocket(connection) that send the msg
-     * @param type or api endpoint that should be reached
-     * @param data object that holds more information on what to do
+     * @param type      or api endpoint that should be reached
+     * @param data      object that holds more information on what to do
      */
     private void handleGet(WebSocket webSocket, String type, JsonObject data) {
         JsonObject responseData = new JsonObject();
@@ -184,12 +184,12 @@ public class Server extends WebSocketServer {
 
     /**
      * Implemented api endpoints:
-     *
+     * <p>
      * - track/vote
      *
      * @param webSocket the websocket(connection) that send the msg
-     * @param type or api endpoint that should be reached
-     * @param data object that holds more information on what to do
+     * @param type      or api endpoint that should be reached
+     * @param data      object that holds more information on what to do
      */
     private void handlePatch(WebSocket webSocket, String type, JsonObject data) {
 
@@ -221,13 +221,13 @@ public class Server extends WebSocketServer {
 
     /**
      * Implemented api endpoints:
-     *
+     * <p>
      * - queue/uri
      * - player/control
      *
      * @param webSocket the websocket(connection) that send the msg
-     * @param type or api endpoint that should be reached
-     * @param data object that holds more information on what to do
+     * @param type      or api endpoint that should be reached
+     * @param data      object that holds more information on what to do
      */
     private void handlePost(WebSocket webSocket, String type, JsonObject data) {
 
@@ -241,12 +241,12 @@ public class Server extends WebSocketServer {
 
     /**
      * Implemented api endpoints:
-     *
+     * <p>
      * none
      *
      * @param webSocket the websocket(connection) that send the msg
-     * @param type or api endpoint that should be reached
-     * @param data object that holds more information on what to do
+     * @param type      or api endpoint that should be reached
+     * @param data      object that holds more information on what to do
      */
     private void handleDelete(WebSocket webSocket, String type, JsonObject data) {
 

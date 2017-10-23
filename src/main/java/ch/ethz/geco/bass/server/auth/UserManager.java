@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Manages the handling of users. This includes authorization, account management, and session handling.
+ */
 public class UserManager {
     /**
      * The logger of this class
@@ -108,8 +111,7 @@ public class UserManager {
     }
 
     /**
-     * Tries to delete the given user. Only works in combination with a valid session for that user.
-     * Do NOT call this function without checking if the user has a valid session.
+     * Tries to delete the given user. Only works in combination with a valid session token for that user.
      *
      * @param ws     the web socket which wants to delete a user
      * @param userID the user ID of the user to delete
@@ -127,6 +129,8 @@ public class UserManager {
             } catch (SQLException e) {
                 ErrorHandler.handleRemote(e, ws);
             }
+        } else {
+            // TODO: Send unauthorized notification
         }
     }
 
@@ -137,15 +141,15 @@ public class UserManager {
      * @return true if the logout was successful, false if the given user was not logged in
      */
     private static boolean logout(String user) {
-        boolean isLoggedIn = false;
+        boolean wasLoggedIn = false;
         for (Map.Entry<String, User> curEntry : validSessions.entrySet()) {
             if (curEntry.getValue().getName().equals(user)) {
                 validSessions.remove(curEntry.getKey());
-                isLoggedIn = true;
+                wasLoggedIn = true;
             }
         }
 
-        return isLoggedIn;
+        return wasLoggedIn;
     }
 
     /**
