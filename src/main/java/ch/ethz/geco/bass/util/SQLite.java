@@ -1,6 +1,5 @@
 package ch.ethz.geco.bass.util;
 
-import com.sun.istack.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,6 @@ public class SQLite {
      * @return either a valid database connection or null on error
      * @throws SQLException on database access error
      */
-    @Nullable
     public static Connection getConnection() throws SQLException {
         if (connection == null || !connection.isValid(0)) {
             logger.debug("Connection is no longer valid, reconnecting...");
