@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
  * Represents a playlist.
  */
 public class Playlist {
-    private final Comparator<AudioTrack> comparator = Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getTrackID()).reversed()
-            .thenComparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getVoteCount()).reversed();
+    private final Comparator<AudioTrack> comparator = Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getVoteCount()).reversed().thenComparing(Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getTrackID()));
+
 
     /**
      * The internal mapping of trackIDs to tracks.
@@ -130,7 +130,7 @@ public class Playlist {
             // FIXME: duplicate code, find a way to be able to call specific requests when needed.
             // Broadcast queue/all response
             Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
-            JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
+            JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(sortedPlaylist, listType);
 
             JsonObject response = new JsonObject();
             response.addProperty("method", "post");
