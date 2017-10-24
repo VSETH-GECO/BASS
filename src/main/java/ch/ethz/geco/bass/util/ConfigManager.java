@@ -38,6 +38,8 @@ public class ConfigManager {
         }
     }
 
+    // Get and set of configs here:
+
     public static String getKeystorePassword() {
         if (config == null)
             load();

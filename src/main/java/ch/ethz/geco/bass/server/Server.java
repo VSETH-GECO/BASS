@@ -28,27 +28,6 @@ import java.util.List;
  * interface.
  */
 public class Server extends AuthWebSocketServer {
-    public void stopSocket() {
-        // Inform connections about stopping the playback
-        JsonObject jo = new JsonObject();
-        JsonObject data = new JsonObject();
-
-        data.addProperty("state", "stopped");
-
-        jo.addProperty("method", "post");
-        jo.addProperty("type", "player/control");
-        jo.add("data", data);
-        broadcast(jo);
-
-        // Shutdown socket to free port
-        try {
-            this.setReuseAddr(true);
-            this.stop(1000);
-        } catch (InterruptedException e) {
-            ErrorHandler.handleLocal(e);
-        }
-    }
-
     enum Method {get, post, patch, delete}
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
@@ -262,6 +241,27 @@ public class Server extends AuthWebSocketServer {
      */
     private void handleDelete(AuthWebSocket webSocket, String type, JsonObject data) {
 
+    }
+
+    public void stopSocket() {
+        // Inform connections about stopping the playback
+        JsonObject jo = new JsonObject();
+        JsonObject data = new JsonObject();
+
+        data.addProperty("state", "stopped");
+
+        jo.addProperty("method", "post");
+        jo.addProperty("type", "player/control");
+        jo.add("data", data);
+        broadcast(jo);
+
+        // Shutdown socket to free port
+        try {
+            this.setReuseAddr(true);
+            this.stop(1000);
+        } catch (InterruptedException e) {
+            ErrorHandler.handleLocal(e);
+        }
     }
 
     public void broadcast(JsonObject jo) {

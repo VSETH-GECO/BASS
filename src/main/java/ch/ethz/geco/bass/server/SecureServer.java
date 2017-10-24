@@ -33,7 +33,7 @@ public class SecureServer {
             KeyStore ks = KeyStore.getInstance(STORETYPE);
             File kf = new File(KEYSTORE);
 
-            if (!kf.exists()) {
+            /*if (!kf.exists()) {
                 Runtime.getRuntime().exec(
                         "/home/bermos/bin/Java/jdk-9/bin/keytool " +
                                 "-genkey " +
@@ -46,7 +46,7 @@ public class SecureServer {
                 ).waitFor();
 
                 System.out.println(kf.getAbsolutePath());
-            }
+            }*/
 
             ks.load(new FileInputStream(kf), STOREPASSWORD.toCharArray());
 

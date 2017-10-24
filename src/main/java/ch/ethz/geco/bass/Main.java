@@ -32,8 +32,9 @@ public class Main {
         logger.info("The GECO Byro Audio Speaker System. Copyright (c) 2017, Licensed under MIT");
 
         // Start web socket server
-        SecureServer server = new SecureServer(8455);
-        Main.server = server.start();
+        //SecureServer server = new SecureServer(8455);
+        Main.server = new Server(8455);
+        /*Main.server = */server.start();
 
         // Start audio consumer
         AudioConsumer audioConsumer = new AudioConsumer();
