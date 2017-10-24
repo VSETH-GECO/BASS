@@ -101,18 +101,44 @@ public class UserManager {
                 // TODO: Send account not found notification
             }
         } catch (SQLException e) {
-            ErrorHandler.handleRemote(e, webSocket);
+            ErrorHandler.handleLocal(e);
         }
     }
 
     /**
      * Tries to login a user with the given session token. This can be used to resume old sessions.
      *
-     * @param webSocket
-     * @param token
+     * @param webSocket the web socket which wants to login
+     * @param token     the session token
      */
     public static void login(AuthWebSocket webSocket, String token) {
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement sessionQuery = con.prepareStatement("SELECT UserID FROM Sessions WHERE Token = ?;");
+            sessionQuery.setString(1, token);
+            ResultSet sessionResult = sessionQuery.executeQuery();
 
+            if (sessionResult.next()) {
+                int userID = sessionResult.getInt("UserID");
+                PreparedStatement userQuery = con.prepareStatement("SELECT Name FROM Users WHERE ID = ?;");
+                userQuery.setInt(1, userID);
+                ResultSet userResult = userQuery.executeQuery();
+
+                if (userResult.next()) {
+                    String userName = userResult.getString("Name");
+                    User user = new User(userID, userName);
+                    webSocket.setAuthorizedUser(user);
+
+                    // TODO: Resend session token to interface?
+                } else {
+                    // No user found, but there was a session associated with it. This should not happen
+                }
+            } else {
+                // TODO: Send invalid session notification
+            }
+        } catch (SQLException e) {
+            ErrorHandler.handleLocal(e);
+        }
     }
 
     /**
@@ -142,7 +168,7 @@ public class UserManager {
                 // TODO: Send name already taken notification
             }
         } catch (SQLException e) {
-            ErrorHandler.handleRemote(e, webSocket);
+            ErrorHandler.handleLocal(e);
         }
     }
 
@@ -161,7 +187,7 @@ public class UserManager {
 
             // TODO: Send account successfully deleted notification
         } catch (SQLException e) {
-            ErrorHandler.handleRemote(e, webSocket);
+            ErrorHandler.handleLocal(e);
         }
     }
 
