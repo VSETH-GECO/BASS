@@ -106,6 +106,16 @@ public class UserManager {
     }
 
     /**
+     * Tries to login a user with the given session token. This can be used to resume old sessions.
+     *
+     * @param webSocket
+     * @param token
+     */
+    public static void login(AuthWebSocket webSocket, String token) {
+
+    }
+
+    /**
      * Tries to register a new user. Responds to the given web socket if the operation was successful.
      * It could fail because of duplicate user names or internal errors.
      *
