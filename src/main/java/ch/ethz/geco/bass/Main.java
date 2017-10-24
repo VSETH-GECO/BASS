@@ -2,6 +2,7 @@ package ch.ethz.geco.bass;
 
 import ch.ethz.geco.bass.audio.AudioConsumer;
 import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
+import ch.ethz.geco.bass.server.SecureServer;
 import ch.ethz.geco.bass.server.Server;
 import ch.ethz.geco.bass.util.ErrorHandler;
 import com.google.gson.Gson;
@@ -31,14 +32,14 @@ public class Main {
         logger.info("The GECO Byro Audio Speaker System. Copyright (c) 2017, Licensed under MIT");
 
         // Start web socket server
-        server = new Server(8455);
-        server.start();
+        SecureServer server = new SecureServer(8455);
+        Main.server = server.start();
 
         // Start audio consumer
         AudioConsumer audioConsumer = new AudioConsumer();
         audioConsumer.setName("AudioConsumer");
         audioConsumer.start();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> server.stopSocket()));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.server.stopSocket()));
     }
 }

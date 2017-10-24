@@ -236,6 +236,18 @@ public class Server extends WebSocketServer {
                 String uri = data.get("uri").getAsString();
                 AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, data));
                 break;
+
+            case "user/login":
+                if (data.get("token").isJsonObject()) {
+                    String token = data.get("token").getAsString();
+                } else {
+                    String username = data.get("username").getAsString();
+                    String password = data.get("password").getAsString();
+                }
+
+                // TODO upgrade connection to logged in connection
+
+                break;
         }
     }
 
