@@ -115,16 +115,14 @@ public class Playlist {
         synchronized (this) {
             // Insertion sort the playlist according to https://en.wikipedia.org/wiki/Insertion_sort
             AudioTrack[] tracks = sortedPlaylist.toArray(new AudioTrack[sortedPlaylist.size()]);
-            int i = 1;
-            while (i < tracks.length) {
+            for (int i = 1; i < tracks.length; i++) {
                 AudioTrack x = tracks[i];
-                int j = i;
+                int j = i - 1;
                 while (j >= 0 && comparator.compare(tracks[j], x) > 0) {
                     tracks[j + 1] = tracks[j];
                     j--;
                 }
                 tracks[j + 1] = x;
-                i++;
             }
 
             sortedPlaylist = new ArrayList<>(Arrays.asList(tracks));
