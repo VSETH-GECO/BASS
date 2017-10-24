@@ -328,7 +328,7 @@ public abstract class AuthWebSocketServer extends AbstractWebSocket implements R
                             Socket socket = channel.socket();
                             socket.setTcpNoDelay( isTcpNoDelay() );
                             socket.setKeepAlive( true );
-                            AuthWebSocket w = (AuthWebSocket) wsf.createWebSocket( this, drafts );
+                            AuthWebSocket w = new AuthWebSocket(this, drafts); //(AuthWebSocket) wsf.createWebSocket( this, drafts );
                             w.key = channel.register( selector, SelectionKey.OP_READ, w );
                             try {
                                 w.channel = wsf.wrapChannel( channel, w.key );
