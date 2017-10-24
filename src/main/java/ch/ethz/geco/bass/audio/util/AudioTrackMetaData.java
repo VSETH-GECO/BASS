@@ -45,6 +45,7 @@ public class AudioTrackMetaData {
     /**
      * Returns the ID of the track in the player. <p>
      * Note: This is NOT the same as the ID of the track given by lava-player.
+     *
      * @return the ID of the track in the player
      */
     public Integer getTrackID() {

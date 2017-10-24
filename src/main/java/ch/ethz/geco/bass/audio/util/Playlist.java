@@ -113,7 +113,7 @@ public class Playlist {
      */
     public void resort() {
         synchronized (this) {
-            // Insertion sort the playlist
+            // Insertion sort the playlist according to https://en.wikipedia.org/wiki/Insertion_sort
             AudioTrack[] tracks = ((AudioTrack[]) sortedPlaylist.toArray());
             int i = 1;
             while (i < tracks.length) {
