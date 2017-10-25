@@ -11,9 +11,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
-import org.java_websocket.server.WebSocketServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,24 +127,14 @@ public class Server extends AuthWebSocketServer {
                 Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
                 JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
 
-                response.addProperty("method", "post");
-                response.addProperty("type", "queue/all");
-                response.add("data", trackList);
-                webSocket.send(response.toString());
-
+                WsPackage.create().method("post").type("queue/all").data(trackList).send(webSocket);
                 break;
 
             case "player/current":
                 AudioTrack at = AudioManager.getPlayer().getPlayingTrack();
-
                 responseData = at != null ? (JsonObject) Main.GSON.toJsonTree(at, AudioTrack.class) : null;
 
-                response.addProperty("method", "post");
-                response.addProperty("type", "player/current");
-                response.add("data", responseData);
-
-                webSocket.send(response.toString());
-
+                WsPackage.create().method("post").type("player/current").data(responseData).send(webSocket);
                 break;
 
             case "player/state":
@@ -156,6 +144,7 @@ public class Server extends AuthWebSocketServer {
                 responseData.addProperty("state", state);
 
                 WsPackage.create().method("post").type("player/control").data(responseData).send(webSocket);
+                break;
         }
     }
 
