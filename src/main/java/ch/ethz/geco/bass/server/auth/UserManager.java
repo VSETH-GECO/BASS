@@ -1,7 +1,7 @@
 package ch.ethz.geco.bass.server.auth;
 
 import ch.ethz.geco.bass.server.AuthWebSocket;
-import ch.ethz.geco.bass.server.RequestSender;
+import ch.ethz.geco.bass.server.util.RequestSender;
 import ch.ethz.geco.bass.util.ErrorHandler;
 import ch.ethz.geco.bass.util.SQLite;
 import com.google.gson.JsonObject;

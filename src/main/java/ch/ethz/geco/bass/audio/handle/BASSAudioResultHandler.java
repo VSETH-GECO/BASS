@@ -3,7 +3,7 @@ package ch.ethz.geco.bass.audio.handle;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import ch.ethz.geco.bass.server.AuthWebSocket;
-import ch.ethz.geco.bass.server.RequestSender;
+import ch.ethz.geco.bass.server.util.RequestSender;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;

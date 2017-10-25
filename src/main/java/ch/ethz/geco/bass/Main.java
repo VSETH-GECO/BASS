@@ -31,7 +31,7 @@ public class Main {
         // Start web socket server
         //SecureServer server = new SecureServer(8455);
         Main.server = new Server(8455);
-        /*Main.server = */server.start();
+        server.start();
 
         // Start audio consumer
         AudioConsumer audioConsumer = new AudioConsumer();
