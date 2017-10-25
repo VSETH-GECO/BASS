@@ -161,9 +161,9 @@ public class UserManager {
 
             // Check if there is already a user with that name
             if (!result.next()) {
-                PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Users VALUES (?, ?)");
+                PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Users (Name, Password) VALUES (?, ?)");
                 insertStatement.setString(1, userName);
-                insertStatement.setString(2, password);
+                insertStatement.setString(2, BCrypt.hashpw(password, BCrypt.gensalt()));
                 insertStatement.executeUpdate();
 
                 if (webSocket != null) {
