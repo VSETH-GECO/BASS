@@ -13,7 +13,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
 
 /**
  * Manages the handling of users. This includes authorization, account management, and session handling.
@@ -98,7 +100,7 @@ public class UserManager {
                     User user = new User(userID, userName);
                     webSocket.setAuthorizedUser(user);
 
-                    // TODO: Send session token to interface
+                    RequestSender.sendUserToken(webSocket, token);
                 } else {
                     // Wrong password
                     JsonObject data = new JsonObject();
@@ -140,7 +142,7 @@ public class UserManager {
                     User user = new User(userID, userName);
                     webSocket.setAuthorizedUser(user);
 
-                    // TODO: Resend session token to interface?
+                    RequestSender.sendUserToken(webSocket, token);
                 } else {
                     ErrorHandler.handleLocal(new IllegalStateException("Found session associated to non-existing user."));
                 }
