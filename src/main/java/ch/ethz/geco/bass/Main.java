@@ -2,13 +2,9 @@ package ch.ethz.geco.bass;
 
 import ch.ethz.geco.bass.audio.AudioConsumer;
 import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
-import ch.ethz.geco.bass.server.SecureServer;
 import ch.ethz.geco.bass.server.Server;
-import ch.ethz.geco.bass.server.auth.UserManager;
-import ch.ethz.geco.bass.util.ErrorHandler;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

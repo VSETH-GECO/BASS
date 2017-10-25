@@ -93,15 +93,10 @@ public class Server extends AuthWebSocketServer {
             }
 
         } else {
-            JsonObject jo = new JsonObject();
             JsonObject data = new JsonObject();
-
             data.addProperty("message", "Json parse error");
-            jo.addProperty("method", "post");
-            jo.addProperty("type", "error");
-            jo.add("data", data);
 
-            webSocket.send(Main.GSON.toJson(jo));
+            RequestSender.sendError(webSocket, data);
         }
     }
 
@@ -118,7 +113,6 @@ public class Server extends AuthWebSocketServer {
      */
     private void handleGet(AuthWebSocket webSocket, String type, JsonObject data) {
         JsonObject responseData = new JsonObject();
-        JsonObject response = new JsonObject();
 
         switch (type) {
             case "queue/all":
