@@ -1,4 +1,4 @@
-package ch.ethz.geco.bass.util;
+package ch.ethz.geco.bass.server.util;
 
 import ch.ethz.geco.bass.Main;
 import com.google.gson.JsonElement;

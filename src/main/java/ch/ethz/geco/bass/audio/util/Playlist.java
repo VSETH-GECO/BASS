@@ -1,7 +1,7 @@
 package ch.ethz.geco.bass.audio.util;
 
 import ch.ethz.geco.bass.Main;
-import ch.ethz.geco.bass.server.RequestSender;
+import ch.ethz.geco.bass.server.util.RequestSender;
 import com.google.gson.JsonObject;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
@@ -12,7 +12,6 @@ import java.util.*;
  */
 public class Playlist {
     private final Comparator<AudioTrack> comparator = Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getVoteCount()).reversed().thenComparing(Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getTrackID()));
-
 
     /**
      * The internal mapping of trackIDs to tracks.

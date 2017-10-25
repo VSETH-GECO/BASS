@@ -1,8 +1,8 @@
-package ch.ethz.geco.bass.server;
+package ch.ethz.geco.bass.server.util;
 
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
-import ch.ethz.geco.bass.util.WsPackage;
+import ch.ethz.geco.bass.server.AuthWebSocket;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
