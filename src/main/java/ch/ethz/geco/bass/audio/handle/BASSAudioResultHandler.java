@@ -10,7 +10,6 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import org.java_websocket.WebSocket;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,7 +27,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
     @Override
     public void trackLoaded(AudioTrack audioTrack) {
         // Add metadata
-        AudioTrackMetaData metaData = new AudioTrackMetaData(trackCount.getAndIncrement(), jo.get("userID").getAsString());
+        AudioTrackMetaData metaData = new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID().toString());
         audioTrack.setUserData(metaData);
 
         // Queue track
@@ -68,7 +67,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         List<AudioTrack> playlist = audioPlaylist.getTracks();
 
         for (AudioTrack track : playlist) {
-            track.setUserData(new AudioTrackMetaData(trackCount.getAndIncrement(), jo.get("userId").getAsString()));
+            track.setUserData(new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID().toString()));
             AudioManager.getScheduler().queue(track);
         }
     }
