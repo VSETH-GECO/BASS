@@ -74,6 +74,9 @@ public class Playlist {
             }
             AudioTrack track = sortedPlaylist.remove(0);
             trackSet.remove(((AudioTrackMetaData) track.getUserData()).getTrackID());
+
+            updateClientsPlaylist();
+
             return track;
         }
     }
@@ -127,16 +130,18 @@ public class Playlist {
 
             sortedPlaylist = new ArrayList<>(Arrays.asList(tracks));
 
-            // FIXME: duplicate code, find a way to be able to call specific requests when needed.
-            // Broadcast queue/all response
-            Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
-            JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(sortedPlaylist, listType);
-
-            JsonObject response = new JsonObject();
-            response.addProperty("method", "post");
-            response.addProperty("type", "queue/all");
-            response.add("data", trackList);
-            Main.server.broadcast(response);
+            updateClientsPlaylist();
         }
+    }
+
+    void updateClientsPlaylist() {
+        Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
+        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(sortedPlaylist, listType);
+
+        JsonObject response = new JsonObject();
+        response.addProperty("method", "post");
+        response.addProperty("type", "queue/all");
+        response.add("data", trackList);
+        Main.server.broadcast(response);
     }
 }
