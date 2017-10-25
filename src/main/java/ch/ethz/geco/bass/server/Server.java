@@ -227,7 +227,7 @@ public class Server extends AuthWebSocketServer {
                 break;
 
             case "user/login":
-                if (data.get("token").isJsonObject()) {
+                if (data.get("token") != null) {
                     String token = data.get("token").getAsString();
                     UserManager.login(webSocket, token);
                 } else {
