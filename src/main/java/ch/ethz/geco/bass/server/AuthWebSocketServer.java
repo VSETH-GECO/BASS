@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * This is a copy-pasted and adapted WebSocketServer to be able to use AuthWebSockets as WebSocket implementation.
  * Don't touch it if it's still working.
  */
+@SuppressWarnings("ALL") // ez fix
 public abstract class AuthWebSocketServer extends AbstractWebSocket implements Runnable {
 
     public static int DECODERS = Runtime.getRuntime().availableProcessors();

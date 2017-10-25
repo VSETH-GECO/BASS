@@ -2,6 +2,7 @@ package ch.ethz.geco.bass.audio.util;
 
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
+import ch.ethz.geco.bass.server.RequestSender;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -75,7 +76,7 @@ public class Playlist {
             AudioTrack track = sortedPlaylist.remove(0);
             trackSet.remove(((AudioTrackMetaData) track.getUserData()).getTrackID());
 
-            updateClientsPlaylist();
+            RequestSender.broadcastPlaylist();
 
             return track;
         }
@@ -106,8 +107,6 @@ public class Playlist {
         if (track != null) {
             ((AudioTrackMetaData) track.getUserData()).getVotes().put(userID, vote);
             resort();
-        } else {
-            // TODO: somehow report an error to the interface that the track wasn't found
         }
     }
 
@@ -128,20 +127,7 @@ public class Playlist {
                 tracks[j + 1] = x;
             }
 
-            sortedPlaylist = new ArrayList<>(Arrays.asList(tracks));
-
-            updateClientsPlaylist();
+            RequestSender.broadcastPlaylist();
         }
-    }
-
-    void updateClientsPlaylist() {
-        Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
-        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(sortedPlaylist, listType);
-
-        JsonObject response = new JsonObject();
-        response.addProperty("method", "post");
-        response.addProperty("type", "queue/all");
-        response.add("data", trackList);
-        Main.server.broadcast(response);
     }
 }

@@ -1,29 +1,27 @@
 package ch.ethz.geco.bass.audio.handle;
 
-import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
-import com.google.gson.JsonArray;
+import ch.ethz.geco.bass.server.AuthWebSocket;
+import ch.ethz.geco.bass.server.RequestSender;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.java_websocket.WebSocket;
 
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class BASSAudioResultHandler implements AudioLoadResultHandler {
     private static final AtomicInteger trackCount = new AtomicInteger(0);
-    private WebSocket webSocket;
+    private AuthWebSocket webSocket;
     private JsonObject jo;
 
-    public BASSAudioResultHandler(WebSocket websocket, JsonObject jo) {
-        this.webSocket = websocket;
+    public BASSAudioResultHandler(AuthWebSocket webSocket, JsonObject jo) {
+        this.webSocket = webSocket;
         this.jo = jo;
     }
 
@@ -44,7 +42,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         webSocket.send(response.toString());
 
         // Inform all connected users
-        updatePlaylistForUsers();
+        RequestSender.broadcastPlaylist();
     }
 
     @Override
@@ -53,11 +51,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         JsonObject data = new JsonObject();
         data.addProperty("message", "No matches found");
 
-        JsonObject response = new JsonObject();
-        response.addProperty("method", "post");
-        response.addProperty("type", "err");
-        response.add("data", data);
-        webSocket.send(response.toString());
+        RequestSender.sendError(webSocket, data);
     }
 
     @Override
@@ -66,11 +60,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         JsonObject data = new JsonObject();
         data.addProperty("message", e.getMessage());
 
-        JsonObject response = new JsonObject();
-        response.addProperty("method", "post");
-        response.addProperty("type", "err");
-        response.add("data", data);
-        webSocket.send(response.toString());
+        RequestSender.sendError(webSocket, data);
     }
 
     @Override
@@ -82,17 +72,4 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
             AudioManager.getScheduler().queue(track);
         }
     }
-
-    private void updatePlaylistForUsers() {
-        JsonObject response = new JsonObject();
-
-        Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
-        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
-
-        response.addProperty("method", "post");
-        response.addProperty("type", "queue/all");
-        response.add("data", trackList);
-        Main.server.broadcast(response);
-    }
-
 }
