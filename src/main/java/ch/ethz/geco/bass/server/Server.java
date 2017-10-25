@@ -172,8 +172,10 @@ public class Server extends AuthWebSocketServer {
      */
     private void handlePatch(AuthWebSocket webSocket, String type, JsonObject data) {
         // Unauthorized connection should not be able to patch
-        if (!webSocket.isAuthorized())
+        if (!webSocket.isAuthorized()) {
+            handleUnauthroized(webSocket, type);
             return;
+        }
 
         switch (type) {
             case "track/vote":
@@ -215,8 +217,10 @@ public class Server extends AuthWebSocketServer {
 
         switch (type) {
             case "queue/uri":
-                if (!webSocket.isAuthorized())
+                if (!webSocket.isAuthorized()) {
+                    handleUnauthroized(webSocket, type);
                     return;
+                }
 
                 String uri = data.get("uri").getAsString();
                 AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, data));
@@ -247,6 +251,20 @@ public class Server extends AuthWebSocketServer {
      */
     private void handleDelete(AuthWebSocket webSocket, String type, JsonObject data) {
 
+    }
+
+    private void handleUnauthroized(AuthWebSocket webSocket, String type) {
+        JsonObject jo = new JsonObject();
+        JsonObject data = new JsonObject();
+
+        data.addProperty("message", "Your connection is unauthorized, please log in.");
+        data.addProperty("type", type);
+
+        jo.addProperty("method", "post");
+        jo.addProperty("type", "user/unauthorized");
+        jo.add("data", data);
+
+        webSocket.send(jo.toString());
     }
 
     public void stopSocket() {
