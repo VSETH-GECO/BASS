@@ -1,16 +1,11 @@
 package ch.ethz.geco.bass.audio.util;
 
 import ch.ethz.geco.bass.Main;
-import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.server.RequestSender;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
-import java.lang.reflect.Type;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Represents a playlist.
@@ -126,6 +121,8 @@ public class Playlist {
                 }
                 tracks[j + 1] = x;
             }
+
+            sortedPlaylist = new ArrayList<>(Arrays.asList(tracks));
 
             RequestSender.broadcastPlaylist();
         }
