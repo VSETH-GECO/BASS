@@ -19,7 +19,7 @@ public class RequestSender {
      * Broadcasts the current state of the playlist to all connected web sockets.
      */
     public static void broadcastPlaylist() {
-        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist(), playlistType);
+        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), playlistType);
         WsPackage.create().method("post").type("queue/all").data(trackList).broadcast();
     }
 
