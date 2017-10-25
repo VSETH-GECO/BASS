@@ -6,6 +6,7 @@ import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import ch.ethz.geco.bass.server.auth.UserManager;
 import ch.ethz.geco.bass.util.ErrorHandler;
+import ch.ethz.geco.bass.util.WsPackage;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -154,10 +155,7 @@ public class Server extends AuthWebSocketServer {
                 String state = ap.isPaused() ? "paused" : ap.getPlayingTrack() == null ? "stopped" : "playing";
                 responseData.addProperty("state", state);
 
-                response.addProperty("method", "post");
-                response.addProperty("type", "player/control");
-                response.add("data", responseData);
-                webSocket.send(response.toString());
+                WsPackage.create().method("post").type("player/control").data(responseData).send(webSocket);
         }
     }
 
@@ -253,6 +251,7 @@ public class Server extends AuthWebSocketServer {
 
     }
 
+    // TODO add to error handler
     private void handleUnauthroized(AuthWebSocket webSocket, String type) {
         JsonObject jo = new JsonObject();
         JsonObject data = new JsonObject();
