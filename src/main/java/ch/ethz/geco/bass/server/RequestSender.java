@@ -69,4 +69,8 @@ public class RequestSender {
         response.add("data", data);
         ws.send(response.toString());
     }
+
+    public static void sendUserToken(AuthWebSocket ws, String token) {
+
+    }
 }

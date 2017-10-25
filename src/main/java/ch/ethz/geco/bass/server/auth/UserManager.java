@@ -1,8 +1,10 @@
 package ch.ethz.geco.bass.server.auth;
 
 import ch.ethz.geco.bass.server.AuthWebSocket;
+import ch.ethz.geco.bass.server.RequestSender;
 import ch.ethz.geco.bass.util.ErrorHandler;
 import ch.ethz.geco.bass.util.SQLite;
+import com.google.gson.JsonObject;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,10 +100,16 @@ public class UserManager {
 
                     // TODO: Send session token to interface
                 } else {
-                    // TODO: Send wrong password notification
+                    // Wrong password
+                    JsonObject data = new JsonObject();
+                    data.addProperty("message", "Wrong password.");
+                    RequestSender.sendError(webSocket, data);
                 }
             } else {
-                // TODO: Send account not found notification
+                // Account not found
+                JsonObject data = new JsonObject();
+                data.addProperty("message", "Account not found.");
+                RequestSender.sendError(webSocket, data);
             }
         } catch (SQLException e) {
             ErrorHandler.handleLocal(e);
@@ -134,10 +142,12 @@ public class UserManager {
 
                     // TODO: Resend session token to interface?
                 } else {
-                    // No user found, but there was a session associated with it. This should not happen
+                    ErrorHandler.handleLocal(new IllegalStateException("Found session associated to non-existing user."));
                 }
             } else {
-                // TODO: Send invalid session notification
+                JsonObject data = new JsonObject();
+                data.addProperty("message", "Invalid session.");
+                RequestSender.sendError(webSocket, data);
             }
         } catch (SQLException e) {
             ErrorHandler.handleLocal(e);
@@ -170,8 +180,11 @@ public class UserManager {
                     // TODO: Send registration successful notification
                 }
             } else {
+                // Name already taken
                 if (webSocket != null) {
-                    // TODO: Send name already taken notification
+                    JsonObject data = new JsonObject();
+                    data.addProperty("message", "Name already taken.");
+                    RequestSender.sendError(webSocket, data);
                 }
             }
         } catch (SQLException e) {
