@@ -22,6 +22,7 @@ Request change of player state (play/pause)
   "method": "patch",
   "type": "player/control",
   "data": {
+    "token": "123abc",
     "state": "play"
   }
 }
@@ -88,7 +89,7 @@ On update queue
       "position": 0
     },
     {
-      // Other track(s)3
+      "another track": "..."
     }
   ]
 }
@@ -100,8 +101,8 @@ Request new track
   "method": "post",
   "type": "queue/uri",
   "data": {
-    "uri": "https://youtube.com/watch?v=abcdef",
-    "userID": "1"
+    "token": "123abc",
+    "uri": "https://youtube.com/watch?v=abcdef"
   }
 }
 ```
@@ -112,9 +113,9 @@ Vote on track
   "method": "patch",
   "type": "track/vote",
   "data": {
+    "token": "123abc",
     "id": 1000000,
-    "vote": 1,
-    "userID": "1"
+    "vote": 1
   }
 }
 ```
