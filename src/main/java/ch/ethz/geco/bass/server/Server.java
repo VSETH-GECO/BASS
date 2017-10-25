@@ -7,7 +7,10 @@ import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import ch.ethz.geco.bass.server.auth.UserManager;
 import ch.ethz.geco.bass.util.ErrorHandler;
 import ch.ethz.geco.bass.util.WsPackage;
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -39,12 +42,7 @@ public class Server extends AuthWebSocketServer {
     public void onOpen(AuthWebSocket webSocket, ClientHandshake clientHandshake) {
         logger.info(webSocket.getRemoteSocketAddress().getHostString() + " connected!");
 
-        JsonObject jo = new JsonObject();
-        jo.addProperty("method", "post");
-        jo.addProperty("type", "app/welcome");
-        jo.add("data", JsonNull.INSTANCE);
-
-        webSocket.send(jo.toString());
+        WsPackage.create().method("post").type("app/welcome").send(webSocket);
     }
 
     @Override
@@ -160,7 +158,7 @@ public class Server extends AuthWebSocketServer {
     private void handlePatch(AuthWebSocket webSocket, String type, JsonObject data) {
         // Unauthorized connection should not be able to patch
         if (!webSocket.isAuthorized()) {
-            handleUnauthroized(webSocket, type);
+            handleUnauthorized(webSocket, type);
             return;
         }
 
@@ -205,7 +203,7 @@ public class Server extends AuthWebSocketServer {
         switch (type) {
             case "queue/uri":
                 if (!webSocket.isAuthorized()) {
-                    handleUnauthroized(webSocket, type);
+                    handleUnauthorized(webSocket, type);
                     return;
                 }
 
@@ -241,31 +239,19 @@ public class Server extends AuthWebSocketServer {
     }
 
     // TODO add to error handler
-    private void handleUnauthroized(AuthWebSocket webSocket, String type) {
-        JsonObject jo = new JsonObject();
+    private void handleUnauthorized(AuthWebSocket webSocket, String type) {
         JsonObject data = new JsonObject();
-
         data.addProperty("message", "Your connection is unauthorized, please log in.");
         data.addProperty("type", type);
 
-        jo.addProperty("method", "post");
-        jo.addProperty("type", "user/unauthorized");
-        jo.add("data", data);
-
-        webSocket.send(jo.toString());
+        WsPackage.create().method("post").type("user/unauthorized").data(data).send(webSocket);
     }
 
     public void stopSocket() {
         // Inform connections about stopping the playback
-        JsonObject jo = new JsonObject();
         JsonObject data = new JsonObject();
-
         data.addProperty("state", "stopped");
-
-        jo.addProperty("method", "post");
-        jo.addProperty("type", "player/control");
-        jo.add("data", data);
-        broadcast(jo);
+        WsPackage.create().method("post").type("player/control").data(data).broadcast();
 
         // Shutdown socket to free port
         try {
