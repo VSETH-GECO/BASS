@@ -4,6 +4,7 @@ import ch.ethz.geco.bass.audio.AudioConsumer;
 import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
 import ch.ethz.geco.bass.server.SecureServer;
 import ch.ethz.geco.bass.server.Server;
+import ch.ethz.geco.bass.server.auth.UserManager;
 import ch.ethz.geco.bass.util.ErrorHandler;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

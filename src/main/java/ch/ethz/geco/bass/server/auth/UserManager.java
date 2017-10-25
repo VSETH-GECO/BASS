@@ -32,6 +32,9 @@ public class UserManager {
                 PreparedStatement statement = con.prepareStatement("CREATE TABLE Users (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Password TEXT NOT NULL);");
                 statement.execute();
                 logger.debug("User table created!");
+
+                // TODO: Remove static user in prod
+                UserManager.register(null, "admin", "password");
             } else {
                 logger.debug("User table already exists.");
             }
@@ -163,9 +166,13 @@ public class UserManager {
                 insertStatement.setString(2, password);
                 insertStatement.executeUpdate();
 
-                // TODO: Send registration successful notification
+                if (webSocket != null) {
+                    // TODO: Send registration successful notification
+                }
             } else {
-                // TODO: Send name already taken notification
+                if (webSocket != null) {
+                    // TODO: Send name already taken notification
+                }
             }
         } catch (SQLException e) {
             ErrorHandler.handleLocal(e);
