@@ -17,11 +17,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BASSAudioResultHandler implements AudioLoadResultHandler {
     private static final AtomicInteger trackCount = new AtomicInteger(0);
     private AuthWebSocket webSocket;
-    private JsonObject jo;
 
-    public BASSAudioResultHandler(AuthWebSocket webSocket, JsonObject jo) {
+    public BASSAudioResultHandler(AuthWebSocket webSocket) {
         this.webSocket = webSocket;
-        this.jo = jo;
     }
 
     @Override

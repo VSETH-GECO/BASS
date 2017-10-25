@@ -208,7 +208,7 @@ public class Server extends AuthWebSocketServer {
                 }
 
                 String uri = data.get("uri").getAsString();
-                AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, data));
+                AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket));
                 break;
 
             case "user/login":
