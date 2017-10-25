@@ -3,6 +3,7 @@ package ch.ethz.geco.bass.audio.handle;
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
+import ch.ethz.geco.bass.server.AuthWebSocket;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
@@ -11,7 +12,6 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import org.java_websocket.WebSocket;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -19,10 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class BASSAudioResultHandler implements AudioLoadResultHandler {
     private static final AtomicInteger trackCount = new AtomicInteger(0);
-    private WebSocket webSocket;
+    private AuthWebSocket webSocket;
     private JsonObject jo;
 
-    public BASSAudioResultHandler(WebSocket websocket, JsonObject jo) {
+    public BASSAudioResultHandler(AuthWebSocket websocket, JsonObject jo) {
         this.webSocket = websocket;
         this.jo = jo;
     }
@@ -30,7 +30,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
     @Override
     public void trackLoaded(AudioTrack audioTrack) {
         // Add metadata
-        AudioTrackMetaData metaData = new AudioTrackMetaData(trackCount.getAndIncrement(), jo.get("userID").getAsString());
+        AudioTrackMetaData metaData = new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID().toString());
         audioTrack.setUserData(metaData);
 
         // Queue track
@@ -78,7 +78,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         List<AudioTrack> playlist = audioPlaylist.getTracks();
 
         for (AudioTrack track : playlist) {
-            track.setUserData(new AudioTrackMetaData(trackCount.getAndIncrement(), jo.get("userId").getAsString()));
+            track.setUserData(new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID().toString()));
             AudioManager.getScheduler().queue(track);
         }
     }
