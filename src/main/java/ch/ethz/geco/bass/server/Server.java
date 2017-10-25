@@ -171,10 +171,13 @@ public class Server extends AuthWebSocketServer {
      * @param data      object that holds more information on what to do
      */
     private void handlePatch(AuthWebSocket webSocket, String type, JsonObject data) {
+        // Unauthorized connection should not be able to patch
+        if (!webSocket.isAuthorized())
+            return;
 
         switch (type) {
             case "track/vote":
-                String userID = data.get("userID").getAsString();
+                String userID = webSocket.getUser().getUserID().toString();
                 Byte vote = data.get("vote").getAsByte();
                 int trackID = data.get("id").getAsInt();
 
@@ -212,6 +215,9 @@ public class Server extends AuthWebSocketServer {
 
         switch (type) {
             case "queue/uri":
+                if (!webSocket.isAuthorized())
+                    return;
+
                 String uri = data.get("uri").getAsString();
                 AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket, data));
                 break;
@@ -219,12 +225,12 @@ public class Server extends AuthWebSocketServer {
             case "user/login":
                 if (data.get("token").isJsonObject()) {
                     String token = data.get("token").getAsString();
+                    UserManager.login(webSocket, token);
                 } else {
                     String username = data.get("username").getAsString();
                     String password = data.get("password").getAsString();
+                    UserManager.login(webSocket, username, password);
                 }
-
-                // TODO upgrade connection to logged in connection
 
                 break;
         }
