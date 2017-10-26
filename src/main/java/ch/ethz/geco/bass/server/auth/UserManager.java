@@ -101,7 +101,7 @@ public class UserManager {
                     User user = new User(userID, userName);
                     webSocket.setAuthorizedUser(user);
 
-                    RequestSender.sendUserToken(webSocket, token);
+                    RequestSender.sendUserToken(webSocket, token, userName);
                 } else {
                     // Wrong password
                     JsonObject data = new JsonObject();
@@ -143,7 +143,7 @@ public class UserManager {
                     User user = new User(userID, userName);
                     webSocket.setAuthorizedUser(user);
 
-                    RequestSender.sendUserToken(webSocket, token);
+                    RequestSender.sendUserToken(webSocket, token, userName);
                 } else {
                     ErrorHandler.handleLocal(new IllegalStateException("Found session associated to non-existing user."));
                 }

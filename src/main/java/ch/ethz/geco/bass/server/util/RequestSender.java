@@ -20,7 +20,7 @@ public class RequestSender {
      * Broadcasts the current state of the playlist to all connected web sockets.
      */
     public static void broadcastPlaylist() {
-        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist(), playlistType);
+        JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), playlistType);
         WsPackage.create().method("post").type("queue/all").data(trackList).broadcast();
     }
 
@@ -74,9 +74,10 @@ public class RequestSender {
      * @param ws    the web socket to send to
      * @param token the token to send
      */
-    public static void sendUserToken(AuthWebSocket ws, String token) {
+    public static void sendUserToken(AuthWebSocket ws, String token, String username) {
         JsonObject data = new JsonObject();
         data.addProperty("token", token);
+        data.addProperty("username", username);
         WsPackage.create().method("post").type("user/token").data(data).send(ws);
     }
 }
