@@ -2,6 +2,7 @@ package ch.ethz.geco.bass.server.auth;
 
 import ch.ethz.geco.bass.server.AuthWebSocket;
 import ch.ethz.geco.bass.server.util.RequestSender;
+import ch.ethz.geco.bass.server.util.WsPackage;
 import ch.ethz.geco.bass.util.ErrorHandler;
 import ch.ethz.geco.bass.util.SQLite;
 import com.google.gson.JsonObject;
@@ -114,7 +115,7 @@ public class UserManager {
                 RequestSender.sendError(webSocket, data);
             }
         } catch (SQLException e) {
-            ErrorHandler.handleLocal(e);
+            RequestSender.handleInternalError(webSocket, e);
         }
     }
 
@@ -152,7 +153,23 @@ public class UserManager {
                 RequestSender.sendError(webSocket, data);
             }
         } catch (SQLException e) {
-            ErrorHandler.handleLocal(e);
+            RequestSender.handleInternalError(webSocket, e);
+        }
+    }
+
+    /**
+     * Tries to log out the given web socket.
+     *
+     * @param webSocket the web socket which wants to log out
+     */
+    public static void logout(AuthWebSocket webSocket, String token) {
+        try {
+            deleteSessionToken(token);
+            webSocket.logout();
+
+            WsPackage.create().method("post").method("user/logout").send(webSocket);
+        } catch (SQLException e) {
+            RequestSender.handleInternalError(webSocket, e);
         }
     }
 
@@ -190,7 +207,7 @@ public class UserManager {
                 }
             }
         } catch (SQLException e) {
-            ErrorHandler.handleLocal(e);
+            RequestSender.handleInternalError(webSocket, e);
         }
     }
 
@@ -209,7 +226,7 @@ public class UserManager {
 
             // TODO: Send account successfully deleted notification
         } catch (SQLException e) {
-            ErrorHandler.handleLocal(e);
+            RequestSender.handleInternalError(webSocket, e);
         }
     }
 
@@ -218,15 +235,11 @@ public class UserManager {
      *
      * @param token the token to delete
      */
-    private static void deleteSessionToken(String token) {
-        try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Sessions WHERE Token = ?;");
-            deleteStatement.setString(1, token);
-            deleteStatement.executeUpdate();
-        } catch (SQLException e) {
-            ErrorHandler.handleLocal(e);
-        }
+    private static void deleteSessionToken(String token) throws SQLException {
+        Connection con = SQLite.getConnection();
+        PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Sessions WHERE Token = ?;");
+        deleteStatement.setString(1, token);
+        deleteStatement.executeUpdate();
     }
 
     /**

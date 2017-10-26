@@ -1,6 +1,5 @@
 package ch.ethz.geco.bass.util;
 
-import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,30 +60,5 @@ public class ErrorHandler {
 
         logger.error(e.getClass().getSimpleName() + ": " + e.getMessage());
         System.err.println(builder.toString());
-    }
-
-    /**
-     * Sends the error to the given web socket. This will also trigger a local handle.
-     *
-     * @param e  the error to handle
-     * @param ws the web socket to send the error to
-     */
-    public static void handleRemote(Throwable e, WebSocket ws) {
-        // TODO: Format the error and send it
-        //ws.send(<error json>);
-
-        handleLocal(e);
-    }
-
-    /**
-     * Sends the error to all connected clients on the web socket.
-     *
-     * @param e the error to handle
-     */
-    public static void broadcast(Throwable e) {
-        // TODO: Format error and broadcast it
-        //Main.server.broadcast(<error json>);
-
-        handleLocal(e);
     }
 }

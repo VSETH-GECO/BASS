@@ -55,6 +55,14 @@ public class AuthWebSocket extends WebSocketImpl {
     }
 
     /**
+     * Sets this web socket into logged out state. This will also remove the associated user.
+     */
+    public void logout() {
+        authorizedUser = null;
+        isAuthorized = false;
+    }
+
+    /**
      * Returns whether or not this web socket is authorized. This means that the user using this web socket is currently logged in.
      *
      * @return whether or not this web socket is authorized
