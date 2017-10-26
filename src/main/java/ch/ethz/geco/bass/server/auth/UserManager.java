@@ -196,7 +196,7 @@ public class UserManager {
                 insertStatement.executeUpdate();
 
                 if (webSocket != null) {
-                    // TODO: Send registration successful notification
+                    WsPackage.create().type("post").method("user/register").send(webSocket);
                 }
             } else {
                 // Name already taken
@@ -217,14 +217,18 @@ public class UserManager {
      * @param webSocket the web socket which wants to delete a user
      * @param userID    the user ID of the user to delete
      */
-    public static void delete(AuthWebSocket webSocket, String userID) {
+    public static void delete(AuthWebSocket webSocket, int userID) {
         try {
             Connection con = SQLite.getConnection();
-            PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Users WHERE ID = ?;");
-            deleteStatement.setString(1, userID);
-            deleteStatement.executeUpdate();
+            PreparedStatement userDelete = con.prepareStatement("DELETE FROM Users WHERE ID = ?;");
+            userDelete.setInt(1, userID);
+            userDelete.executeUpdate();
 
-            // TODO: Send account successfully deleted notification
+            PreparedStatement sessionDelete = con.prepareStatement("DELETE FROM Sessions WHERE UserID = ?;");
+            sessionDelete.setInt(1, userID);
+            sessionDelete.executeUpdate();
+
+            WsPackage.create().type("post").type("user/delete").send(webSocket);
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
@@ -240,6 +244,10 @@ public class UserManager {
         PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Sessions WHERE Token = ?;");
         deleteStatement.setString(1, token);
         deleteStatement.executeUpdate();
+    }
+
+    private static void refreshToken(String token) {
+
     }
 
     /**
