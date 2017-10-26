@@ -31,6 +31,7 @@ public class Main {
         // Start web socket server
         //SecureServer server = new SecureServer(8455);
         Main.server = new Server(8455);
+        Main.server.setReuseAddr(true);
         server.start();
 
         // Start audio consumer
