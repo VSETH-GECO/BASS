@@ -167,7 +167,7 @@ public class UserManager {
             deleteSessionToken(token);
             webSocket.logout();
 
-            WsPackage.create().method("post").method("user/logout").send(webSocket);
+            WsPackage.create().method("post").type("user/logout").send(webSocket);
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
