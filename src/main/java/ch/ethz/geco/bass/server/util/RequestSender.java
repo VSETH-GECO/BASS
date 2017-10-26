@@ -3,6 +3,7 @@ package ch.ethz.geco.bass.server.util;
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.server.AuthWebSocket;
+import ch.ethz.geco.bass.util.ErrorHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -49,6 +50,22 @@ public class RequestSender {
      */
     public static void sendError(AuthWebSocket ws, JsonObject data) {
         WsPackage.create().method("post").type("err").data(data).send(ws);
+    }
+
+    /**
+     * Handles an internal error by sending a notification to the web socket who triggered the error and also
+     * handles the error locally.
+     *
+     * @param webSocket the web socket who triggered the internal error
+     * @param e         the error
+     */
+    public static void handleInternalError(AuthWebSocket webSocket, Throwable e) {
+        JsonObject data = new JsonObject();
+        data.addProperty("code", 500);
+        data.addProperty("message", "Internal Server Error");
+        WsPackage.create().method("post").type("err").data(data).send(webSocket);
+
+        ErrorHandler.handleLocal(e);
     }
 
     /**
