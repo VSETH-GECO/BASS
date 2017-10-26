@@ -194,7 +194,6 @@ public class Server extends AuthWebSocketServer {
      * @param data      object that holds more information on what to do
      */
     private void handlePost(AuthWebSocket webSocket, String type, JsonObject data) {
-
         switch (type) {
             case "queue/uri":
                 if (!webSocket.isAuthorized()) {
@@ -230,7 +229,12 @@ public class Server extends AuthWebSocketServer {
      * @param data      object that holds more information on what to do
      */
     private void handleDelete(AuthWebSocket webSocket, String type, JsonObject data) {
+        switch (type) {
+            case "user/logout":
+                UserManager.logout(webSocket, data.get("token").getAsString());
+                break;
 
+        }
     }
 
     // TODO add to error handler
