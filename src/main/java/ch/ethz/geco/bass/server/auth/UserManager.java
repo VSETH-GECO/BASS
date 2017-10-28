@@ -143,6 +143,8 @@ public class UserManager {
                     User user = new User(userID, userName);
                     webSocket.setAuthorizedUser(user);
 
+                    refreshToken(token);
+
                     RequestSender.sendUserToken(webSocket, token, userName);
                 } else {
                     ErrorHandler.handleLocal(new IllegalStateException("Found session associated to non-existing user."));
@@ -246,8 +248,17 @@ public class UserManager {
         deleteStatement.executeUpdate();
     }
 
-    private static void refreshToken(String token) {
-
+    /**
+     * Refreshes the validity of the given token.
+     *
+     * @param token the token to refresh
+     * @throws SQLException
+     */
+    private static void refreshToken(String token) throws SQLException {
+        Connection con = SQLite.getConnection();
+        PreparedStatement refreshStatement = con.prepareStatement("UPDATE Sessions SET Valid = datetime('now', '+1 day') WHERE Token = ?;");
+        refreshStatement.setString(1, token);
+        refreshStatement.executeUpdate();
     }
 
     /**
