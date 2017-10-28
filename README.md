@@ -6,6 +6,9 @@ Since it's only controllable over web socket, it's only useful in combination wi
 Because we had the problem that only one person could control the speakers in our office at the same time and everyone else had to listen to their stuff.
 With BASS you can "drop" your music into a web interface and everyone who is connected can vote on the tracks in the playlist.
 
+## Supported formats
+To see which audio formats are supported go take a look at [lavaplayer](https://github.com/sedmelluq/lavaplayer#supported-formats) since we are using it to fetch the audio streams.
+
 ## Running
 To start BASS, simply run:
 ```
