@@ -15,12 +15,31 @@ public class User {
     private String name;
 
     /**
+     * If the user is a admin that can create new users
+     */
+    private boolean isAdmin;
+
+    /**
      * Creates a new user with the given unique ID.
      * @param userID the unique ID of the user
+     * @param name of the user
      */
     public User(Integer userID, String name) {
         this.userID = userID;
         this.name = name;
+        this.isAdmin = false;
+    }
+
+    /**
+     * Creates a new user with the given unique ID.
+     * @param userID of the user (unique)
+     * @param name of the user
+     * @param isAdmin Flag if the user is a admin
+     */
+    public User(Integer userID, String name, boolean isAdmin) {
+        this.userID = userID;
+        this.name = name;
+        this.isAdmin = isAdmin;
     }
 
     /**
@@ -50,5 +69,13 @@ public class User {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof User && userID.equals(((User) obj).getUserID());
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
     }
 }
