@@ -34,7 +34,7 @@ public class UserManager {
 
             if (!SQLite.tableExists("Users")) {
                 logger.debug("User table does not exist, creating...");
-                PreparedStatement statement = con.prepareStatement("CREATE TABLE Users (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Password TEXT NOT NULL, Admin BOOLEAN NOT NULL);");
+                PreparedStatement statement = con.prepareStatement("CREATE TABLE Users (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Password TEXT NOT NULL, Admin INTEGER NOT NULL);");
                 statement.execute();
                 logger.debug("User table created!");
 
@@ -142,7 +142,7 @@ public class UserManager {
 
                 if (userResult.next()) {
                     String userName = userResult.getString("Name");
-                    boolean isAdmin = userResult.getBoolean("Admin");
+                    boolean isAdmin = userResult.getInt("Admin") == 1; // This is dumb, I know
                     User user = new User(userID, userName, isAdmin);
                     webSocket.setAuthorizedUser(user);
 
@@ -195,7 +195,7 @@ public class UserManager {
 
             // Check if there is already a user with that name
             if (!result.next()) {
-                PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Users (Name, Password, Admin) VALUES (?, ?, FALSE);");
+                PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Users (Name, Password, Admin) VALUES (?, ?, 0);");
                 insertStatement.setString(1, userName);
                 insertStatement.setString(2, BCrypt.hashpw(password, BCrypt.gensalt()));
                 insertStatement.executeUpdate();
@@ -230,7 +230,7 @@ public class UserManager {
         try {
             Connection con = SQLite.getConnection();
             PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Admin = ? WHERE Name = ?");
-            updateStatement.setBoolean(1, isAdmin);
+            updateStatement.setInt(1, isAdmin ? 1 : 0); // Because SQLite does not support booleans apparently
             updateStatement.setString(2, userName);
             int updatedRows = updateStatement.executeUpdate();
 
