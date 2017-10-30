@@ -197,7 +197,7 @@ public class Server extends AuthWebSocketServer {
     private void handlePost(AuthWebSocket webSocket, String type, JsonObject data) {
         switch (type) {
             case "queue/uri":
-                if (!webSocket.isAuthorized() || !webSocket.getUser().isAdmin()) {
+                if (!webSocket.isAuthorized()) {
                     handleUnauthorized(webSocket, type);
                     return;
                 }
