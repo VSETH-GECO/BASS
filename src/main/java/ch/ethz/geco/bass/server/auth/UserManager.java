@@ -34,12 +34,13 @@ public class UserManager {
 
             if (!SQLite.tableExists("Users")) {
                 logger.debug("User table does not exist, creating...");
-                PreparedStatement statement = con.prepareStatement("CREATE TABLE Users (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Password TEXT NOT NULL);");
+                PreparedStatement statement = con.prepareStatement("CREATE TABLE Users (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Password TEXT NOT NULL, Admin INTEGER NOT NULL);");
                 statement.execute();
                 logger.debug("User table created!");
 
                 // TODO: Remove static user in prod
                 UserManager.register(null, "admin", "password");
+                UserManager.setAdmin(null, "admin", true);
             } else {
                 logger.debug("User table already exists.");
             }
@@ -91,6 +92,7 @@ public class UserManager {
                 if (BCrypt.checkpw(password, hash)) {
                     String token = UUID.randomUUID().toString();
                     Integer userID = queryResult.getInt("ID");
+                    boolean isAdmin = queryResult.getBoolean("Admin");
 
                     // Add a new session token to the database which is valid for one day
                     PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Sessions VALUES (?,?, datetime('now', '+1 day'));");
@@ -98,7 +100,7 @@ public class UserManager {
                     insertStatement.setString(2, token);
                     insertStatement.executeUpdate();
 
-                    User user = new User(userID, userName);
+                    User user = new User(userID, userName, isAdmin);
                     webSocket.setAuthorizedUser(user);
 
                     RequestSender.sendUserToken(webSocket, token, userName);
@@ -134,13 +136,14 @@ public class UserManager {
 
             if (sessionResult.next()) {
                 int userID = sessionResult.getInt("UserID");
-                PreparedStatement userQuery = con.prepareStatement("SELECT Name FROM Users WHERE ID = ?;");
+                PreparedStatement userQuery = con.prepareStatement("SELECT Name, Admin FROM Users WHERE ID = ?;");
                 userQuery.setInt(1, userID);
                 ResultSet userResult = userQuery.executeQuery();
 
                 if (userResult.next()) {
                     String userName = userResult.getString("Name");
-                    User user = new User(userID, userName);
+                    boolean isAdmin = userResult.getInt("Admin") == 1; // This is dumb, I know
+                    User user = new User(userID, userName, isAdmin);
                     webSocket.setAuthorizedUser(user);
 
                     refreshToken(token);
@@ -192,13 +195,13 @@ public class UserManager {
 
             // Check if there is already a user with that name
             if (!result.next()) {
-                PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Users (Name, Password) VALUES (?, ?);");
+                PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Users (Name, Password, Admin) VALUES (?, ?, 0);");
                 insertStatement.setString(1, userName);
                 insertStatement.setString(2, BCrypt.hashpw(password, BCrypt.gensalt()));
                 insertStatement.executeUpdate();
 
                 if (webSocket != null) {
-                    WsPackage.create().type("post").method("user/register").send(webSocket);
+                    WsPackage.create().method("post").type("user/register").send(webSocket);
                 }
             } else {
                 // Name already taken
@@ -206,6 +209,38 @@ public class UserManager {
                     JsonObject data = new JsonObject();
                     data.addProperty("message", "Name already taken.");
                     RequestSender.sendError(webSocket, data);
+                }
+            }
+        } catch (SQLException e) {
+            RequestSender.handleInternalError(webSocket, e);
+        }
+    }
+
+    /**
+     * Tries to update a users admin property. Responds to the given web socket if the operation was successful.
+     * It could fail because the userName provided does not match any existing user.
+     * It currently requires a new login for the changes to take action.
+     *
+     * @param webSocket the web socket that wants to update a user
+     * @param userName of the user to be update
+     * @param isAdmin value that should be set
+     */
+    public static void setAdmin(AuthWebSocket webSocket, String userName, boolean isAdmin) {
+        // TODO add direct update of the connection with the updated user if one exists.
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Admin = ? WHERE Name = ?");
+            updateStatement.setInt(1, isAdmin ? 1 : 0); // Because SQLite does not support booleans apparently
+            updateStatement.setString(2, userName);
+            int updatedRows = updateStatement.executeUpdate();
+
+            if (webSocket != null) {
+                if (updatedRows == 0) {
+                    JsonObject data = new JsonObject();
+                    data.addProperty("message", "User with that name was not found. Nothing changed.");
+                    RequestSender.sendError(webSocket, data);
+                } else {
+                    WsPackage.create().method("post").type("user/admin").send(webSocket);
                 }
             }
         } catch (SQLException e) {

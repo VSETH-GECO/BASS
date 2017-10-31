@@ -14,6 +14,16 @@ public class WsPackage {
         return new WsPackage();
     }
 
+    public static WsPackage create(String method, String type) {
+        return new WsPackage(method, type);
+    }
+
+    private WsPackage() {}
+    private WsPackage(String method, String type) {
+        this.method = method;
+        this.type = type;
+    }
+
     public WsPackage method(String method) {
         this.method = method;
 

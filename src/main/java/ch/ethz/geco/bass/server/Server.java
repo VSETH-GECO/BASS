@@ -115,6 +115,7 @@ public class Server extends AuthWebSocketServer {
     private void handleGet(AuthWebSocket webSocket, String type, JsonObject data) {
         JsonObject responseData = new JsonObject();
 
+
         switch (type) {
             case "queue/all":
                 Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
@@ -194,7 +195,6 @@ public class Server extends AuthWebSocketServer {
      * @param data      object that holds more information on what to do
      */
     private void handlePost(AuthWebSocket webSocket, String type, JsonObject data) {
-
         switch (type) {
             case "queue/uri":
                 if (!webSocket.isAuthorized()) {
@@ -217,6 +217,30 @@ public class Server extends AuthWebSocketServer {
                 }
 
                 break;
+
+            case "user/register":
+                if (!webSocket.isAuthorized() || !webSocket.getUser().isAdmin()) {
+                    handleUnauthorized(webSocket, type);
+                    return;
+                }
+
+                if (data.get("username") != null && data.get("password") != null) {
+                    UserManager.register(webSocket, data.get("username").getAsString(), data.get("password").getAsString());
+                }
+
+                break;
+
+            case "user/setadmin":
+                if (!webSocket.isAuthorized() || !webSocket.getUser().isAdmin()) {
+                    handleUnauthorized(webSocket, type);
+                    return;
+                }
+
+                if (data.get("username") != null && data.get("admin") != null) {
+                    UserManager.setAdmin(webSocket, data.get("username").getAsString(), data.get("admin").getAsBoolean());
+                }
+
+                break;
         }
     }
 
@@ -230,13 +254,18 @@ public class Server extends AuthWebSocketServer {
      * @param data      object that holds more information on what to do
      */
     private void handleDelete(AuthWebSocket webSocket, String type, JsonObject data) {
+        switch (type) {
+            case "user/logout":
+                UserManager.logout(webSocket, data.get("token").getAsString());
+                break;
 
+        }
     }
 
     // TODO add to error handler
     private void handleUnauthorized(AuthWebSocket webSocket, String type) {
         JsonObject data = new JsonObject();
-        data.addProperty("message", "Your connection is unauthorized, please log in.");
+        data.addProperty("message", "Your connection is unauthorized. Log in or upgrade to admin to perform this action.");
         data.addProperty("type", type);
 
         WsPackage.create().method("post").type("user/unauthorized").data(data).send(webSocket);
@@ -250,7 +279,6 @@ public class Server extends AuthWebSocketServer {
 
         // Shutdown socket to free port
         try {
-            this.setReuseAddr(true);
             this.stop(1000);
         } catch (InterruptedException e) {
             ErrorHandler.handleLocal(e);
