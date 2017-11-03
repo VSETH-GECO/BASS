@@ -11,7 +11,11 @@ import java.util.*;
  * Represents a playlist.
  */
 public class Playlist {
-    private final Comparator<AudioTrack> comparator = Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getVoteCount()).reversed().thenComparing(Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getTrackID()));
+    /**
+     * A comparator which can be used to compare tracks by votes and by ID. It first compares the tracks by votes and if they are equal by ID.
+     * If you sort ascending with this comparator, you will get a list of tracks with descending votes and ascending ID's.
+     */
+    private final Comparator<AudioTrack> compareByVotesAndID = Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getVoteCount()).reversed().thenComparing(Comparator.comparing((AudioTrack track) -> ((AudioTrackMetaData) track.getUserData()).getTrackID()));
 
     /**
      * The internal mapping of trackIDs to tracks.
@@ -114,7 +118,7 @@ public class Playlist {
             for (int i = 1; i < tracks.length; i++) {
                 AudioTrack x = tracks[i];
                 int j = i - 1;
-                while (j >= 0 && comparator.compare(tracks[j], x) > 0) {
+                while (j >= 0 && compareByVotesAndID.compare(tracks[j], x) > 0) {
                     tracks[j + 1] = tracks[j];
                     j--;
                 }
