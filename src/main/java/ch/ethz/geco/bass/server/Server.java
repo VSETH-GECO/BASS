@@ -27,8 +27,7 @@ import java.util.List;
  * Server class
  * <p>
  * Somewhen in the future it should handle all kinds of api
- * requests to modify the queue. Maybe even provide a web-
- * interface.
+ * requests to modify the queue.
  */
 public class Server extends AuthWebSocketServer {
     enum Method {get, post, patch, delete}
@@ -139,6 +138,10 @@ public class Server extends AuthWebSocketServer {
 
                 WsPackage.create().method("post").type("player/control").data(responseData).send(webSocket);
                 break;
+
+            case "user/favorite":
+                JsonArray favoritesList = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(webSocket.getUser().getUserID()));
+                WsPackage.create().method("post").type("user/favorite").data(responseData).send(webSocket);
         }
     }
 
@@ -204,6 +207,15 @@ public class Server extends AuthWebSocketServer {
 
                 String uri = data.get("uri").getAsString();
                 AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket));
+                break;
+
+            case "user/favorite":
+                if (!webSocket.isAuthorized()) {
+                    handleUnauthorized(webSocket, type);
+                    return;
+                }
+
+                UserManager.favorite(webSocket, data);
                 break;
 
             case "user/login":
