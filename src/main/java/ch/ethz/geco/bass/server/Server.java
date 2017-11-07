@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Server class
@@ -113,11 +114,11 @@ public class Server extends AuthWebSocketServer {
      */
     private void handleGet(AuthWebSocket webSocket, String type, JsonObject data) {
         JsonObject responseData = new JsonObject();
-
+        Type listType;
 
         switch (type) {
             case "queue/all":
-                Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
+                listType = new TypeToken<List<AudioTrack>>(){}.getType();
                 JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
 
                 WsPackage.create().method("post").type("queue/all").data(trackList).send(webSocket);
@@ -140,8 +141,9 @@ public class Server extends AuthWebSocketServer {
                 break;
 
             case "user/favorite":
-                JsonArray favoritesList = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(webSocket.getUser().getUserID()));
-                WsPackage.create().method("post").type("user/favorite").data(responseData).send(webSocket);
+                listType = new TypeToken<Map<String, String>>(){}.getType();
+                JsonArray favoritesList = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(webSocket.getUser().getUserID()), listType);
+                WsPackage.create().method("post").type("user/favorite").data(favoritesList).send(webSocket);
         }
     }
 

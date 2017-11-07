@@ -339,7 +339,7 @@ public class UserManager {
         return favorites;
     }
 
-    public static void addFavourite(int userID, String uri, String title) {
+    public static void addFavorite(int userID, String uri, String title) {
         try {
             Connection con = SQLite.getConnection();
             PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Favorites VALUES (?, ?, ?)");
@@ -351,7 +351,7 @@ public class UserManager {
         }
     }
 
-    public static boolean removeFavourite(int userID, String uri) {
+    public static boolean removeFavorite(int userID, String uri) {
         try {
             Connection con = SQLite.getConnection();
             PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Favorites WHERE UserID = ? AND Uri = ?");
@@ -393,14 +393,14 @@ public class UserManager {
         switch (data.get("intend").getAsString()) {
             case "add":
                 if (!hasFavorite(userID, data.get("uri").getAsString())) {
-                    addFavourite(userID, data.get("uri").getAsString(), data.get("title").getAsString());
+                    addFavorite(userID, data.get("uri").getAsString(), data.get("title").getAsString());
                 }
                 responseData.addProperty("message", "Success");
                 WsPackage.create().method("post").type("user/favorite").data(responseData).send(webSocket);
                 break;
 
             case "remove":
-                removeFavourite(userID, data.get("uri").getAsString());
+                removeFavorite(userID, data.get("uri").getAsString());
                 responseData.addProperty("message", "Success");
                 WsPackage.create().method("post").type("user/favorite").data(responseData).send(webSocket);
                 break;
