@@ -12,6 +12,9 @@
     <inceptionYear>2017</inceptionYear>
 
     <build>
+        <!-- Set final jar name to BASS.jar -->
+        <finalName>BASS</finalName>
+
         <!-- Includes the logback.xml into maven builds -->
         <resources>
             <resource>

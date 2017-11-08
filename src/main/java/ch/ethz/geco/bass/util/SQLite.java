@@ -25,7 +25,7 @@ public class SQLite {
     /**
      * The path to the database.
      */
-    private static final String DB_PATH = "jdbc:sqlite:bass.db";
+    private static final String DB_PATH = "jdbc:sqlite:data/bass.db";
 
     /**
      * Returns either a valid database connection or null if something went wrong while connecting to the database.
