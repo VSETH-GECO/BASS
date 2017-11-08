@@ -1,37 +1,39 @@
 package ch.ethz.geco.bass.server.util;
 
 import ch.ethz.geco.bass.Main;
+import ch.ethz.geco.bass.server.Server.Action;
+import ch.ethz.geco.bass.server.Server.Resource;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.java_websocket.WebSocket;
 
 public class WsPackage {
-    private String method;
-    private String type;
+    private Resource resource;
+    private Action action;
     private JsonElement data;
 
     public static WsPackage create() {
         return new WsPackage();
     }
 
-    public static WsPackage create(String method, String type) {
-        return new WsPackage(method, type);
+    public static WsPackage create(Resource resource, Action action) {
+        return new WsPackage(resource, action);
     }
 
     private WsPackage() {}
-    private WsPackage(String method, String type) {
-        this.method = method;
-        this.type = type;
+    private WsPackage(Resource resource, Action action) {
+        this.resource = resource;
+        this.action = action;
     }
 
-    public WsPackage method(String method) {
-        this.method = method;
+    public WsPackage resource(Resource resource) {
+        this.resource = resource;
 
         return this;
     }
 
-    public WsPackage type(String type) {
-        this.type = type;
+    public WsPackage action(Action action) {
+        this.action = action;
 
         return this;
     }
@@ -45,8 +47,8 @@ public class WsPackage {
     private JsonObject makeJson() {
         JsonObject paeckli = new JsonObject();
 
-        paeckli.addProperty("method", method);
-        paeckli.addProperty("type", type);
+        paeckli.addProperty("resource", resource.toString().toLowerCase());
+        paeckli.addProperty("action", action.toString().toLowerCase());
         paeckli.add("data", data);
 
         return paeckli;

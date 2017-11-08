@@ -3,6 +3,8 @@ package ch.ethz.geco.bass.server.util;
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.server.AuthWebSocket;
+import ch.ethz.geco.bass.server.Server.Action;
+import ch.ethz.geco.bass.server.Server.Resource;
 import ch.ethz.geco.bass.util.ErrorHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -21,14 +23,14 @@ public class RequestSender {
      */
     public static void broadcastPlaylist() {
         JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), playlistType);
-        WsPackage.create().method("post").type("queue/all").data(trackList).broadcast();
+        WsPackage.create().resource(Resource.QUEUE).action(Action.DATA).data(trackList).broadcast();
     }
 
     /**
      * Broadcasts the current track to all connected web sockets.
      */
     public static void broadcastCurrentTrack() {
-        WsPackage.create().method("post").type("player/current").data(Main.GSON.toJsonTree(AudioManager.getPlayer().getPlayingTrack(), AudioTrack.class)).broadcast();
+        WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(Main.GSON.toJsonTree(AudioManager.getPlayer().getPlayingTrack(), AudioTrack.class)).broadcast();
     }
 
     /**
@@ -39,7 +41,7 @@ public class RequestSender {
     public static void broadcastState(String state) {
         JsonObject data = new JsonObject();
         data.addProperty("state", state);
-        WsPackage.create().method("post").type("player/control").data(data).broadcast();
+        WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(data).broadcast();
     }
 
     /**
@@ -49,7 +51,7 @@ public class RequestSender {
      * @param data the data to send
      */
     public static void sendError(AuthWebSocket ws, JsonObject data) {
-        WsPackage.create().method("post").type("err").data(data).send(ws);
+        WsPackage.create().resource(Resource.APP).action(Action.ERROR).data(data).send(ws);
     }
 
     /**
@@ -63,7 +65,7 @@ public class RequestSender {
         JsonObject data = new JsonObject();
         data.addProperty("code", 500);
         data.addProperty("message", "Internal Server Error");
-        WsPackage.create().method("post").type("err").data(data).send(webSocket);
+        WsPackage.create().resource(Resource.APP).action(Action.ERROR).data(data).send(webSocket);
 
         ErrorHandler.handleLocal(e);
     }
@@ -78,6 +80,6 @@ public class RequestSender {
         JsonObject data = new JsonObject();
         data.addProperty("token", token);
         data.addProperty("username", username);
-        WsPackage.create().method("post").type("user/token").data(data).send(ws);
+        WsPackage.create().resource(Resource.USER).action(Action.DATA).data(data).send(ws);
     }
 }

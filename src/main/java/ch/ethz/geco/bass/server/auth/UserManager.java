@@ -1,6 +1,9 @@
 package ch.ethz.geco.bass.server.auth;
 
 import ch.ethz.geco.bass.server.AuthWebSocket;
+import ch.ethz.geco.bass.server.Server.Action;
+import ch.ethz.geco.bass.server.Server.Resource;
+import ch.ethz.geco.bass.server.util.FavoriteTrack;
 import ch.ethz.geco.bass.server.util.RequestSender;
 import ch.ethz.geco.bass.server.util.WsPackage;
 import ch.ethz.geco.bass.util.ErrorHandler;
@@ -54,7 +57,7 @@ public class UserManager {
 
             if (!SQLite.tableExists("Favorites")) {
                 logger.debug("Favorites table does not exist, creating...");
-                PreparedStatement statement = con.prepareStatement("CREATE TABLE Favorites (UserID INTEGER NOT NULL, Title TEXT NOT NULL, Uri Text NOT NULL, FOREIGN KEY(UserID) REFERENCES Users(ID));");
+                PreparedStatement statement = con.prepareStatement("CREATE TABLE Favorites (UserID INTEGER NOT NULL, Uri TEXT NOT NULL, Title Text NOT NULL, FOREIGN KEY(UserID) REFERENCES Users(ID));");
                 statement.execute();
                 logger.debug("Favorites table created!");
             } else {
@@ -179,7 +182,7 @@ public class UserManager {
             deleteSessionToken(token);
             webSocket.logout();
 
-            WsPackage.create().method("post").type("user/logout").send(webSocket);
+            WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).send(webSocket);
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
@@ -208,7 +211,7 @@ public class UserManager {
                 insertStatement.executeUpdate();
 
                 if (webSocket != null) {
-                    WsPackage.create().method("post").type("user/register").send(webSocket);
+                    WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).send(webSocket);
                 }
             } else {
                 // Name already taken
@@ -247,7 +250,7 @@ public class UserManager {
                     data.addProperty("message", "User with that name was not found. Nothing changed.");
                     RequestSender.sendError(webSocket, data);
                 } else {
-                    WsPackage.create().method("post").type("user/admin").send(webSocket);
+                    WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).send(webSocket);
                 }
             }
         } catch (SQLException e) {
@@ -272,7 +275,8 @@ public class UserManager {
             sessionDelete.setInt(1, userID);
             sessionDelete.executeUpdate();
 
-            WsPackage.create().type("post").type("user/delete").send(webSocket);
+
+            WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).send(webSocket);
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
@@ -294,7 +298,7 @@ public class UserManager {
      * Refreshes the validity of the given token.
      *
      * @param token the token to refresh
-     * @throws SQLException
+     * @throws SQLException on sql exception
      */
     private static void refreshToken(String token) throws SQLException {
         Connection con = SQLite.getConnection();
@@ -320,8 +324,8 @@ public class UserManager {
         }
     }
 
-    public static Map<String, String> getFavorites(int userID) {
-        HashMap<String, String> favorites = new HashMap<>();
+    public static List<FavoriteTrack> getFavorites(int userID) {
+        ArrayList <FavoriteTrack> favorites = new ArrayList<>();
 
         try {
             Connection con = SQLite.getConnection();
@@ -330,7 +334,7 @@ public class UserManager {
             ResultSet results = queryStatement.executeQuery();
 
             while (results.next()) {
-                favorites.put(results.getString("Uri"), results.getString("Title"));
+                favorites.add(new FavoriteTrack(results.getString("Uri"), results.getString("Title")));
             }
         } catch (SQLException e) {
             ErrorHandler.handleLocal(e);
@@ -341,11 +345,17 @@ public class UserManager {
 
     public static void addFavorite(int userID, String uri, String title) {
         try {
+            if (hasFavorite(userID, uri)) {
+                return;
+            }
+
             Connection con = SQLite.getConnection();
             PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Favorites VALUES (?, ?, ?)");
             insertStatement.setInt(1, userID);
             insertStatement.setString(2, uri);
             insertStatement.setString(3, title);
+
+            insertStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -368,10 +378,10 @@ public class UserManager {
         return false;
     }
 
-    public static boolean hasFavorite(int userID, String uri) {
+    private static boolean hasFavorite(int userID, String uri) {
         try {
             Connection con = SQLite.getConnection();
-            PreparedStatement queryStatement = con.prepareStatement("SELECT UserID FROM Favorites WHERE UuserID = ? AND Uri = ?");
+            PreparedStatement queryStatement = con.prepareStatement("SELECT UserID FROM Favorites WHERE UserID = ? AND Uri = ?");
             queryStatement.setInt(1, userID);
             queryStatement.setString(2, uri);
 
@@ -392,18 +402,6 @@ public class UserManager {
 
         switch (data.get("intend").getAsString()) {
             case "add":
-                if (!hasFavorite(userID, data.get("uri").getAsString())) {
-                    addFavorite(userID, data.get("uri").getAsString(), data.get("title").getAsString());
-                }
-                responseData.addProperty("message", "Success");
-                WsPackage.create().method("post").type("user/favorite").data(responseData).send(webSocket);
-                break;
-
-            case "remove":
-                removeFavorite(userID, data.get("uri").getAsString());
-                responseData.addProperty("message", "Success");
-                WsPackage.create().method("post").type("user/favorite").data(responseData).send(webSocket);
-                break;
         }
     }
 }
