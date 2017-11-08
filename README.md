@@ -18,12 +18,12 @@ Then you can connect to it via web socket on port `8445` using our [Web Interfac
 or you can implement your own control interface using the [API](/API-Docs.md).
 
 ## Docker
-You can also run BASS inside Docker. Until we provide the images needed, you have to build them yourself. First you have to build an ubuntu image with alsa installed (see [here]()) named "geco/ubuntu":
+You can also run BASS inside Docker. Until we provide the images needed, you have to build them yourself. First you have to build an ubuntu image with alsa installed (see [here](https://github.com/VSETH-GECO/Dockerfiles/blob/master/Ubuntu/Dockerfile)) named "geco/ubuntu":
 ```
 wget https://raw.githubusercontent.com/VSETH-GECO/Dockerfiles/master/Ubuntu/Dockerfile && sudo docker build -t geco/ubuntu .
 ```
  
-Then you use this image to build a new image with oracle java 8 installed (see [here]()) named "geco/oracle-java8":
+Then you use this image to build a new image with oracle java 8 installed (see [here](https://github.com/VSETH-GECO/Dockerfiles/blob/master/Oracle-Java8/Dockerfile)) named "geco/oracle-java8":
 ```
 wget https://raw.githubusercontent.com/VSETH-GECO/Dockerfiles/master/Oracle-Java8/Dockerfile && sudo docker build -t geco/oracle-java8 .
 ```
