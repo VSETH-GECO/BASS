@@ -1,13 +1,23 @@
 # API Documentation
 
+Every interaction between BASS and it's users works over one standardized json format:
+```json
+{
+  "resource": "",
+  "action": "",
+  "data": {}
+}
+```
+Whereby `data` can be an arbitrary object or `null`.
+
 ## Connection
 On connect
 ```json
 {
-  "method": "post",
-  "type": "app/welcome",
+  "resource": "app",
+  "action": "success",
   "data": {
-    "message": "Welcome to BASS"
+    "api-version": "1.0"
   }
 }
 ```
@@ -16,118 +26,228 @@ On connect
 ## Player
 
 ### Control
-Request change of player state (play/pause)
+Request change of player state (playing/paused) \
+*login required*
 ```json
 {
-  "method": "patch",
-  "type": "player/control",
-  "data": {
-    "state": "play"
-  }
-}
-```
-
-
-### Update
-Request update on current player state
-```json
-{
-  "method": "get",
-  "type": "player/state",
-  "data": null
-}
-```
-
-On player state change (playing/paused/stopped)
-```json
-{
-  "method": "post",
-  "type": "player/control",
+  "resource": "player",
+  "action": "set",
   "data": {
     "state": "playing"
   }
 }
 ```
 
-### Track
-Request update on current track
+
+### Update
+Request update on current player state or track
 ```json
 {
-  "method": "get",
-  "type": "player/current",
+  "resource": "player",
+  "action": "get",
   "data": null
 }
 ```
+Response:
+```json
+{
+  "resource": "player",
+  "action": "data",
+  "data": {
+    "status": "playing",
+    "track": {
+      "id": 0,
+      "uri": "https://www.youtube.com/watch?v=xEYftmh4wz0",
+      "userID": "1",
+      "userName": "generic user",
+      "title": "Russian Hardbass",
+      "voters": [],
+      "votes": 0,
+      "length": 1642000,
+      "position": 648420
+    }
+  }
+}
+```
+The same package will be broadcasted when the player changes state and/or track with the track possibly being `null`.
 
 ## Queue
 Request update on current queue
 ```json
 {
-  "method": "get",
-  "type": "queue/all",
+  "resource": "queue",
+  "action": "get",
   "data": null
 }
 ```
 
-On update queue
+Response:
 ```json
 {
-  "method": "post",
-  "type": "queue/all",
-  "data": [
-    {
-      "uri": 1,
+  "resource": "queue",
+  "action": "data",
+  "data": [{
+      "id": 1,
+      "uri": "https://www.youtube.com/watch?v=xEYftmh4wz0",
       "userID": "1",
-      "titel": "Hadbass from Russia",
-      "votes": {
-        "userID1": 1,
-        "userID2": -1,
-        "userID3": 0
-      },
-      "length": 50000,
+      "userName": "generic user",
+      "title": "Really hard russian hardbass",
+      "voters": [],
+      "votes": 0,
+      "length": 1246000,
       "position": 0
-    },
-    {
-      "another track": "..."
-    }
-  ]
+    }, {
+      "id": 2,
+      "uri": "https://www.youtube.com/watch?v=xEYftmh4wz0",
+      "userID": "2",
+      "userName": "another user",
+      "title": "The hardes of russian hardbass",
+      "voters": [],
+      "votes": 0,
+      "length": 1005000,
+      "position": 0
+    }]
 }
 ```
 
-Request new track
+Request new track \
+*login required*
 ```json
 {
-  "method": "post",
-  "type": "queue/uri",
+  "resource": "queue",
+  "action": "uri",
   "data": {
     "uri": "https://youtube.com/watch?v=abcdef"
   }
 }
 ```
 
-Vote on track
+
+## Track
+Vote on track, id is the track's id and vote can be 1/-1/0 being a up-/down- or neutral vote. \
+*login required*
 ```json
 {
-  "method": "patch",
-  "type": "track/vote",
+  "resource": "track",
+  "action": "vote",
   "data": {
-    "id": 1000000,
+    "id": "1",
     "vote": 1
   }
 }
 ```
 
-On update track
+## User
+Logging in:
 ```json
 {
-  "method": "patch",
-  "type": "queue/track",
+  "resource": "user",
+  "action": "login",
   "data": {
-    "id": 1000000,
-    "uri": "",
-    "submitterID": 2,
-    "title": "Hardbass",
-    "vote": 1
+    "username": "generic user",
+    "password": "supersecurepassword"
+  }
+}
+```
+
+Logging out:
+```json
+{
+  "resource": "user",
+  "action": "logout",
+  "data": null
+}
+```
+
+*All following request require admin rights and being logged in*
+Register a new user:
+```json
+{
+  "resource": "user",
+  "action": "register",
+  "data": {
+    "username": "another user",
+    "password": "thesecurestpassword"
+  }
+}
+```
+
+Update a users admin privilege
+```json
+{
+  "resource": "user",
+  "action": "setadmin",
+  "data": {
+    "username": "another user",
+    "admin": false
+  }
+}
+```
+
+Delete a user
+```json
+{
+  "resource": "user",
+  "action": "delete",
+  "data": {
+    "username": "another user"
+  }
+}
+```
+
+## Favorites
+
+*all following requests require being logged in*
+Retrieve your favorites:
+```json
+{
+  "resource": "favorites",
+  "action": "get",
+  "data": null
+}
+```
+
+Add a favorite to your user
+```json
+{
+  "resource": "favorites",
+  "action": "add",
+  "data": {
+    "uri": "https://www.youtube.com/watch?v=xEYftmh4wz0",
+    "title": "Russian hardbass"
+  }
+}
+```
+
+Remove a track from your users favorites:
+```json
+{
+  "resource": "favorites",
+  "action": "remove",
+  "data": {
+    "uri": "https://www.youtube.com/watch?v=xEYftmh4wz0"
+  }
+}
+```
+
+## Responses
+Responses to requests that don't require specific data to be sent back will look like this:
+```json
+{
+  "resource": "the resource you requested",
+  "action": "success",
+  "data": null
+}
+```
+
+If your request failed for some reason the response will look like this:
+```json
+{
+  "resource": "the resource you requested",
+  "action": "error",
+  "data": {
+    "action": "the action you wanted to perform",
+    "message": "human-readable error description"
   }
 }
 ```
