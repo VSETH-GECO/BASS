@@ -30,7 +30,7 @@ wget https://raw.githubusercontent.com/VSETH-GECO/Dockerfiles/master/Oracle-Java
 
 Finally, you can build the docker image for BASS calling this in the root of the repository:
 ```
-sudo docker build -t geco/bass .
+mvn clean install && sudo docker build -t geco/bass .
 ```
 
 After you obtained a working docker image, you have to create a docker volume for BASS to store its log files and database:
