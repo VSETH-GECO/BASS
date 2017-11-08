@@ -22,13 +22,13 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Server class
  * <p>
  * Somewhen in the future it should handle all kinds of api
- * requests to modify the queue. Maybe even provide a web-
- * interface.
+ * requests to modify the queue.
  */
 public class Server extends AuthWebSocketServer {
     enum Method {get, post, patch, delete}
@@ -114,11 +114,11 @@ public class Server extends AuthWebSocketServer {
      */
     private void handleGet(AuthWebSocket webSocket, String type, JsonObject data) {
         JsonObject responseData = new JsonObject();
-
+        Type listType;
 
         switch (type) {
             case "queue/all":
-                Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
+                listType = new TypeToken<List<AudioTrack>>(){}.getType();
                 JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
 
                 WsPackage.create().method("post").type("queue/all").data(trackList).send(webSocket);
@@ -139,6 +139,11 @@ public class Server extends AuthWebSocketServer {
 
                 WsPackage.create().method("post").type("player/control").data(responseData).send(webSocket);
                 break;
+
+            case "user/favorite":
+                listType = new TypeToken<Map<String, String>>(){}.getType();
+                JsonArray favoritesList = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(webSocket.getUser().getUserID()), listType);
+                WsPackage.create().method("post").type("user/favorite").data(favoritesList).send(webSocket);
         }
     }
 
@@ -204,6 +209,15 @@ public class Server extends AuthWebSocketServer {
 
                 String uri = data.get("uri").getAsString();
                 AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(webSocket));
+                break;
+
+            case "user/favorite":
+                if (!webSocket.isAuthorized()) {
+                    handleUnauthorized(webSocket, type);
+                    return;
+                }
+
+                UserManager.favorite(webSocket, data);
                 break;
 
             case "user/login":

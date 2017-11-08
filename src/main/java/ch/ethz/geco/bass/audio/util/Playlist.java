@@ -33,12 +33,13 @@ public class Playlist {
      * @param track the track to add
      * @return true on success, false if the track is already in the playlist
      */
-    public boolean add(AudioTrack track) {
+    public boolean add(AudioTrack track, boolean resort) {
         synchronized (this) {
             Integer trackID = ((AudioTrackMetaData) track.getUserData()).getTrackID();
             if (trackSet.putIfAbsent(trackID, track) == null) {
                 if (sortedPlaylist.add(track)) {
-                    resort();
+                    if (resort)
+                        resort();
                     return true;
                 } else {
                     trackSet.remove(trackID);

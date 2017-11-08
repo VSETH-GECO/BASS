@@ -25,11 +25,11 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
     @Override
     public void trackLoaded(AudioTrack audioTrack) {
         // Add metadata
-        AudioTrackMetaData metaData = new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID().toString());
+        AudioTrackMetaData metaData = new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID().toString(), webSocket.getUser().getName());
         audioTrack.setUserData(metaData);
 
         // Queue track
-        AudioManager.getScheduler().queue(audioTrack);
+        AudioManager.getScheduler().queue(audioTrack, true);
 
         // Reply to user
         JsonObject response = new JsonObject();
@@ -64,9 +64,17 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
     public void playlistLoaded(AudioPlaylist audioPlaylist) {
         List<AudioTrack> playlist = audioPlaylist.getTracks();
 
-        for (AudioTrack track : playlist) {
-            track.setUserData(new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID().toString()));
-            AudioManager.getScheduler().queue(track);
+        for (int i = 0; i < playlist.size(); i++) {
+            AudioTrack track = playlist.get(i);
+            track.setUserData(new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID().toString(), webSocket.getUser().getName()));
+            AudioManager.getScheduler().queue(track, i == playlist.size() - 1);
         }
+
+        // Reply to user
+        JsonObject response = new JsonObject();
+        response.addProperty("method", "post");
+        response.addProperty("type", "ack");
+        response.add("data", JsonNull.INSTANCE);
+        webSocket.send(response.toString());
     }
 }

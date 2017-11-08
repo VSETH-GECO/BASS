@@ -14,9 +14,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Manages the handling of users. This includes authorization, account management, and session handling.
@@ -52,6 +50,15 @@ public class UserManager {
                 logger.debug("Sessions table created!");
             } else {
                 logger.debug("Sessions table already exists.");
+            }
+
+            if (!SQLite.tableExists("Favorites")) {
+                logger.debug("Favorites table does not exist, creating...");
+                PreparedStatement statement = con.prepareStatement("CREATE TABLE Favorites (UserID INTEGER NOT NULL, Title TEXT NOT NULL, Uri Text NOT NULL, FOREIGN KEY(UserID) REFERENCES Users(ID));");
+                statement.execute();
+                logger.debug("Favorites table created!");
+            } else {
+                logger.debug("Favorites table already exists.");
             }
         } catch (SQLException e) {
             ErrorHandler.handleLocal(e);
@@ -310,6 +317,93 @@ public class UserManager {
             }
         } catch (SQLException e) {
             ErrorHandler.handleLocal(e);
+        }
+    }
+
+    public static Map<String, String> getFavorites(int userID) {
+        HashMap<String, String> favorites = new HashMap<>();
+
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement queryStatement = con.prepareStatement("SELECT Uri, Title FROM Favorites WHERE UserID = ?");
+            queryStatement.setInt(1, userID);
+            ResultSet results = queryStatement.executeQuery();
+
+            while (results.next()) {
+                favorites.put(results.getString("Uri"), results.getString("Title"));
+            }
+        } catch (SQLException e) {
+            ErrorHandler.handleLocal(e);
+        }
+
+        return favorites;
+    }
+
+    public static void addFavorite(int userID, String uri, String title) {
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Favorites VALUES (?, ?, ?)");
+            insertStatement.setInt(1, userID);
+            insertStatement.setString(2, uri);
+            insertStatement.setString(3, title);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean removeFavorite(int userID, String uri) {
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Favorites WHERE UserID = ? AND Uri = ?");
+            deleteStatement.setInt(1, userID);
+            deleteStatement.setString(2, uri);
+
+            int removedFavorites = deleteStatement.executeUpdate();
+
+            return removedFavorites > 0;
+        } catch (SQLException e) {
+            ErrorHandler.handleLocal(e);
+        }
+
+        return false;
+    }
+
+    public static boolean hasFavorite(int userID, String uri) {
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement queryStatement = con.prepareStatement("SELECT UserID FROM Favorites WHERE UuserID = ? AND Uri = ?");
+            queryStatement.setInt(1, userID);
+            queryStatement.setString(2, uri);
+
+            ResultSet results = queryStatement.executeQuery();
+
+            return results.next();
+        } catch (SQLException e) {
+            ErrorHandler.handleLocal(e);
+        }
+
+        return false;
+    }
+
+    // TODO Put in its own (sub-)class?
+    public static void favorite(AuthWebSocket webSocket, JsonObject data) {
+        int userID = webSocket.getUser().getUserID();
+        JsonObject responseData = new JsonObject();
+
+        switch (data.get("intend").getAsString()) {
+            case "add":
+                if (!hasFavorite(userID, data.get("uri").getAsString())) {
+                    addFavorite(userID, data.get("uri").getAsString(), data.get("title").getAsString());
+                }
+                responseData.addProperty("message", "Success");
+                WsPackage.create().method("post").type("user/favorite").data(responseData).send(webSocket);
+                break;
+
+            case "remove":
+                removeFavorite(userID, data.get("uri").getAsString());
+                responseData.addProperty("message", "Success");
+                WsPackage.create().method("post").type("user/favorite").data(responseData).send(webSocket);
+                break;
         }
     }
 }

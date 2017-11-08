@@ -24,13 +24,19 @@ public class AudioTrackMetaData {
     private final String userID;
 
     /**
+     * The Name of the user who added the track.
+     */
+    private final String userName;
+
+    /**
      * Creates a new meta data object with the given user and an empty vote map.
      *
      * @param userID the user who added the track
      */
-    public AudioTrackMetaData(Integer trackID, String userID) {
+    public AudioTrackMetaData(Integer trackID, String userID, String userName) {
         this.trackID = trackID;
         this.userID = userID;
+        this.userName = userName;
     }
 
     /**
@@ -59,6 +65,15 @@ public class AudioTrackMetaData {
      */
     public String getUserID() {
         return userID;
+    }
+
+    /**
+     * Returns the username of the user who added the track.
+     *
+     * @return the username of the user who added the track
+     */
+    public String getUserName() {
+        return userName;
     }
 
     /**
