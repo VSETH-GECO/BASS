@@ -31,7 +31,7 @@ import java.util.List;
  * requests to modify the queue.
  */
 public class Server extends AuthWebSocketServer {
-    private static final String API_VERSION = "1.0";
+    private static final String API_VERSION = "v1";
     public enum Resource {APP, PLAYER, QUEUE, USER, FAVORITES, TRACK}
     public enum Action {GET, SET, ADD, DELETE, LOGIN, LOGOUT, INFORM, URI, REGISTER, VOTE, SETADMIN, SUCCESS, ERROR, DATA;
 
@@ -52,7 +52,7 @@ public class Server extends AuthWebSocketServer {
         logger.info(webSocket.getRemoteSocketAddress().getHostString() + " connected!");
 
         JsonObject responseData = new JsonObject();
-        responseData.addProperty("api-version", API_VERSION);
+        responseData.addProperty("apiVersion", API_VERSION);
         WsPackage.create().resource(Resource.APP).action(Action.SUCCESS).data(responseData).send(webSocket);
     }
 
