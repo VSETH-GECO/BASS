@@ -58,7 +58,6 @@ public class ErrorHandler {
             }
         }
 
-        logger.error(e.getClass().getSimpleName() + ": " + e.getMessage());
-        System.err.println(builder.toString());
+        logger.error(e.getClass().getSimpleName() + ": " + e.getMessage() + "\n" + builder.toString());
     }
 }
