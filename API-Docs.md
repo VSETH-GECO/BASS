@@ -17,7 +17,7 @@ On connect
   "resource": "app",
   "action": "success",
   "data": {
-    "api-version": "1.0"
+    "apiVersion": "v1"
   }
 }
 ```
@@ -159,7 +159,7 @@ Logging out:
 }
 ```
 
-*All following request require admin rights and being logged in*
+*All following request require admin rights and being logged in* \
 Register a new user:
 ```json
 {
@@ -197,7 +197,7 @@ Delete a user
 
 ## Favorites
 
-*all following requests require being logged in*
+*all following requests require being logged in* \
 Retrieve your favorites:
 ```json
 {
