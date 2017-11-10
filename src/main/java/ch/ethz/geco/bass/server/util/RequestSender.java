@@ -50,8 +50,8 @@ public class RequestSender {
      * @param ws   the web socket to send to
      * @param data the data to send
      */
-    public static void sendError(AuthWebSocket ws, JsonObject data) {
-        WsPackage.create().resource(Resource.APP).action(Action.ERROR).data(data).send(ws);
+    public static void sendError(AuthWebSocket ws, Resource resource, JsonObject data) {
+        WsPackage.create().resource(resource).action(Action.ERROR).data(data).send(ws);
     }
 
     /**

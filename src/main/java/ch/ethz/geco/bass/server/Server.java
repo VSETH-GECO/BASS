@@ -121,7 +121,7 @@ public class Server extends AuthWebSocketServer {
             JsonObject data = new JsonObject();
             data.addProperty("message", "Json parse error");
 
-            RequestSender.sendError(ws, data);
+            RequestSender.sendError(ws, Resource.APP, data);
         }
     }
 

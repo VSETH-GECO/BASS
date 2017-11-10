@@ -118,13 +118,13 @@ public class UserManager {
                     // Wrong password
                     JsonObject data = new JsonObject();
                     data.addProperty("message", "Wrong password.");
-                    RequestSender.sendError(webSocket, data);
+                    RequestSender.sendError(webSocket, Resource.USER, data);
                 }
             } else {
                 // Account not found
                 JsonObject data = new JsonObject();
                 data.addProperty("message", "Account not found.");
-                RequestSender.sendError(webSocket, data);
+                RequestSender.sendError(webSocket, Resource.USER, data);
             }
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
@@ -165,7 +165,7 @@ public class UserManager {
             } else {
                 JsonObject data = new JsonObject();
                 data.addProperty("message", "Invalid session.");
-                RequestSender.sendError(webSocket, data);
+                RequestSender.sendError(webSocket, Resource.USER, data);
             }
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
@@ -218,7 +218,7 @@ public class UserManager {
                 if (webSocket != null) {
                     JsonObject data = new JsonObject();
                     data.addProperty("message", "Name already taken.");
-                    RequestSender.sendError(webSocket, data);
+                    RequestSender.sendError(webSocket, Resource.USER, data);
                 }
             }
         } catch (SQLException e) {
@@ -248,7 +248,7 @@ public class UserManager {
                 if (updatedRows == 0) {
                     JsonObject data = new JsonObject();
                     data.addProperty("message", "User with that name was not found. Nothing changed.");
-                    RequestSender.sendError(webSocket, data);
+                    RequestSender.sendError(webSocket, Resource.USER, data);
                 } else {
                     WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).send(webSocket);
                 }
