@@ -3,8 +3,9 @@ package ch.ethz.geco.bass.audio.handle;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import ch.ethz.geco.bass.server.AuthWebSocket;
+import ch.ethz.geco.bass.server.Server;
 import ch.ethz.geco.bass.server.util.RequestSender;
-import com.google.gson.JsonNull;
+import ch.ethz.geco.bass.server.util.WsPackage;
 import com.google.gson.JsonObject;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -32,11 +33,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         AudioManager.getScheduler().queue(audioTrack, true);
 
         // Reply to user
-        JsonObject response = new JsonObject();
-        response.addProperty("method", "post");
-        response.addProperty("type", "ack");
-        response.add("data", JsonNull.INSTANCE);
-        webSocket.send(response.toString());
+        WsPackage.create().resource(Server.Resource.QUEUE).action(Server.Action.SUCCESS).send(webSocket);
 
         // Inform all connected users
         RequestSender.broadcastPlaylist();
@@ -48,7 +45,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         JsonObject data = new JsonObject();
         data.addProperty("message", "No matches found");
 
-        RequestSender.sendError(webSocket, data);
+        RequestSender.sendError(webSocket, Server.Resource.QUEUE, data);
     }
 
     @Override
@@ -57,7 +54,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         JsonObject data = new JsonObject();
         data.addProperty("message", e.getMessage());
 
-        RequestSender.sendError(webSocket, data);
+        RequestSender.sendError(webSocket, Server.Resource.QUEUE, data);
     }
 
     @Override
@@ -71,10 +68,6 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         }
 
         // Reply to user
-        JsonObject response = new JsonObject();
-        response.addProperty("method", "post");
-        response.addProperty("type", "ack");
-        response.add("data", JsonNull.INSTANCE);
-        webSocket.send(response.toString());
+        WsPackage.create().resource(Server.Resource.QUEUE).action(Server.Action.SUCCESS).send(webSocket);
     }
 }

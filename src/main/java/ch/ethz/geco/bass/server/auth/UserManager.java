@@ -182,7 +182,7 @@ public class UserManager {
             deleteSessionToken(token);
             webSocket.logout();
 
-            WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).send(webSocket);
+            WsPackage.create().resource(Resource.USER).action(Action.LOGOUT).send(webSocket);
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
@@ -211,7 +211,7 @@ public class UserManager {
                 insertStatement.executeUpdate();
 
                 if (webSocket != null) {
-                    WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).send(webSocket);
+                    WsPackage.create().resource(Resource.USER).action(Action.REGISTER).send(webSocket);
                 }
             } else {
                 // Name already taken

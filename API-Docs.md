@@ -54,7 +54,7 @@ Response:
   "resource": "player",
   "action": "data",
   "data": {
-    "status": "playing",
+    "state": "playing",
     "track": {
       "id": 0,
       "uri": "https://www.youtube.com/watch?v=xEYftmh4wz0",

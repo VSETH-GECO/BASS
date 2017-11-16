@@ -14,7 +14,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.java_websocket.handshake.ClientHandshake;
 import org.slf4j.Logger;
@@ -137,12 +136,14 @@ public class Server extends AuthWebSocketServer {
 
         switch (action) {
             case GET:
+                /*
                 AudioPlayer ap = AudioManager.getPlayer();
                 AudioTrack at = ap.getPlayingTrack();
-                responseData.addProperty("status", ap.isPaused() ? "paused" : ap.getPlayingTrack() == null ? "stopped" : "playing");
+                responseData.addProperty("state", ap.isPaused() ? "paused" : ap.getPlayingTrack() == null ? "stopped" : "playing");
                 responseData.add("track", at != null ? (JsonObject) Main.GSON.toJsonTree(at, AudioTrack.class) : null);
 
-                WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(responseData).send(ws);
+                WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(responseData).send(ws);*/
+                RequestSender.broadcastCurrentTrack();
                 break;
 
             case SET:

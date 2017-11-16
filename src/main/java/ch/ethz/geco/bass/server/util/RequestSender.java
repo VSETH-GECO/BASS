@@ -9,6 +9,7 @@ import ch.ethz.geco.bass.util.ErrorHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
 import java.lang.reflect.Type;
@@ -30,7 +31,14 @@ public class RequestSender {
      * Broadcasts the current track to all connected web sockets.
      */
     public static void broadcastCurrentTrack() {
-        WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(Main.GSON.toJsonTree(AudioManager.getPlayer().getPlayingTrack(), AudioTrack.class)).broadcast();
+        JsonObject responseData = new JsonObject();
+        AudioPlayer ap = AudioManager.getPlayer();
+        AudioTrack at = ap.getPlayingTrack();
+        responseData.addProperty("state", ap.isPaused() ? "paused" : ap.getPlayingTrack() == null ? "stopped" : "playing");
+        responseData.add("track", at != null ? (JsonObject) Main.GSON.toJsonTree(at, AudioTrack.class) : null);
+
+        WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(responseData).broadcast();
+        //WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(Main.GSON.toJsonTree(AudioManager.getPlayer().getPlayingTrack(), AudioTrack.class)).broadcast();
     }
 
     /**

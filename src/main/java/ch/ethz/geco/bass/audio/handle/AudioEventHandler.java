@@ -24,8 +24,6 @@ public class AudioEventHandler extends AudioEventAdapter {
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
         // Inform users of new player state
-        RequestSender.broadcastState("playing");
-
         RequestSender.broadcastCurrentTrack();
     }
 
