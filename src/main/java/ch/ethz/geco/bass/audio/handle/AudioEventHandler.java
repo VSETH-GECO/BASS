@@ -13,12 +13,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 public class AudioEventHandler extends AudioEventAdapter {
     @Override
     public void onPlayerPause(AudioPlayer player) {
-        RequestSender.broadcastState("paused");
+        RequestSender.broadcastCurrentTrack();
     }
 
     @Override
     public void onPlayerResume(AudioPlayer player) {
-        RequestSender.broadcastState("playing");
+        RequestSender.broadcastCurrentTrack();
     }
 
     @Override

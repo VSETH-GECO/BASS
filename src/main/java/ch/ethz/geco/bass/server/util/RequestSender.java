@@ -42,17 +42,6 @@ public class RequestSender {
     }
 
     /**
-     * Broadcast new player state to all connected web sockets.
-     *
-     * @param state the state as string [playing|paused|stopped]
-     */
-    public static void broadcastState(String state) {
-        JsonObject data = new JsonObject();
-        data.addProperty("state", state);
-        WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(data).broadcast();
-    }
-
-    /**
      * Sends an error to the given web socket.
      *
      * @param ws   the web socket to send to
