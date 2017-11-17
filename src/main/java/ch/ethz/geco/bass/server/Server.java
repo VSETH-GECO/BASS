@@ -25,9 +25,6 @@ import java.util.List;
 
 /**
  * Server class
- * <p>
- * Somewhen in the future it should handle all kinds of api
- * requests to modify the queue.
  */
 public class Server extends AuthWebSocketServer {
     private static final String API_VERSION = "v1";

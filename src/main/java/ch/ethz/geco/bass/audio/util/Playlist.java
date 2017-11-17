@@ -1,7 +1,8 @@
 package ch.ethz.geco.bass.audio.util;
 
-import ch.ethz.geco.bass.Main;
+import ch.ethz.geco.bass.server.Server;
 import ch.ethz.geco.bass.server.util.RequestSender;
+import ch.ethz.geco.bass.server.util.WsPackage;
 import com.google.gson.JsonObject;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
@@ -59,16 +60,11 @@ public class Playlist {
         synchronized (this) {
             if (sortedPlaylist.isEmpty()) {
                 // Broadcast to users
-                JsonObject jo = new JsonObject();
                 JsonObject data = new JsonObject();
 
                 data.addProperty("state", "stopped");
-
-                jo.addProperty("method", "post");
-                jo.addProperty("type", "player/control");
-                jo.add("data", data);
-
-                Main.server.broadcast(jo);
+                data.add("track", null);
+                WsPackage.create().resource(Server.Resource.PLAYER).action(Server.Action.DATA).data(data).broadcast();
 
                 return null;
             }
