@@ -280,6 +280,7 @@ public class Server extends AuthWebSocketServer {
                 if (vote <= 1 && vote >= -1) {
                     if (trackID == 0) {
                         ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes().put(userID, vote);
+                        RequestSender.broadcastCurrentTrack();
                     } else {
                         AudioManager.getScheduler().getPlaylist().setVote(trackID, userID, vote);
                     }

@@ -38,7 +38,6 @@ public class RequestSender {
         responseData.add("track", at != null ? (JsonObject) Main.GSON.toJsonTree(at, AudioTrack.class) : null);
 
         WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(responseData).broadcast();
-        //WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(Main.GSON.toJsonTree(AudioManager.getPlayer().getPlayingTrack(), AudioTrack.class)).broadcast();
     }
 
     /**
