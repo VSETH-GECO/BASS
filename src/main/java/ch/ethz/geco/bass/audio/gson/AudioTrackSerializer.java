@@ -21,9 +21,9 @@ public class AudioTrackSerializer implements JsonSerializer<AudioTrack> {
 
         // Parse votes to json array
         JsonArray votes = new JsonArray();
-        for (Map.Entry<String, Byte> entry : metaData.getVotes().entrySet()) {
+        for (Map.Entry<Integer, Byte> entry : metaData.getVotes().entrySet()) {
             JsonObject vote = new JsonObject();
-            vote.addProperty(entry.getKey(), entry.getValue());
+            vote.addProperty(entry.getKey().toString(), entry.getValue());
             votes.add(vote);
         }
 

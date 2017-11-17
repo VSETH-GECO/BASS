@@ -97,7 +97,7 @@ public class Playlist {
      * @param userID  the ID of the user who voted
      * @param vote    the vote
      */
-    public void setVote(Integer trackID, String userID, Byte vote) {
+    public void setVote(Integer trackID, Integer userID, Byte vote) {
         AudioTrack track = trackSet.get(trackID);
         if (track != null) {
             ((AudioTrackMetaData) track.getUserData()).getVotes().put(userID, vote);
