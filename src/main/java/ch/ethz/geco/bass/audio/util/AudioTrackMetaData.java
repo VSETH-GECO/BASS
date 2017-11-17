@@ -10,7 +10,7 @@ public class AudioTrackMetaData {
     /**
      * A map of users and their votes (1 = positive, -1 = negative).
      */
-    private final Map<String, Byte> votes = new HashMap<>();
+    private final Map<Integer, Byte> votes = new HashMap<>();
 
     /**
      * The ID of the track in the player. <p>
@@ -21,7 +21,7 @@ public class AudioTrackMetaData {
     /**
      * The ID of the user who added the track.
      */
-    private final String userID;
+    private final Integer userID;
 
     /**
      * The Name of the user who added the track.
@@ -33,7 +33,7 @@ public class AudioTrackMetaData {
      *
      * @param userID the user who added the track
      */
-    public AudioTrackMetaData(Integer trackID, String userID, String userName) {
+    public AudioTrackMetaData(Integer trackID, Integer userID, String userName) {
         this.trackID = trackID;
         this.userID = userID;
         this.userName = userName;
@@ -44,7 +44,7 @@ public class AudioTrackMetaData {
      *
      * @return a map with all voters and their vote
      */
-    public Map<String, Byte> getVotes() {
+    public Map<Integer, Byte> getVotes() {
         return votes;
     }
 
@@ -63,7 +63,7 @@ public class AudioTrackMetaData {
      *
      * @return the userID of the user who added the track
      */
-    public String getUserID() {
+    public Integer getUserID() {
         return userID;
     }
 
