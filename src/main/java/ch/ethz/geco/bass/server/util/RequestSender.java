@@ -72,8 +72,9 @@ public class RequestSender {
      * @param ws    the web socket to send to
      * @param token the token to send
      */
-    public static void sendUserToken(AuthWebSocket ws, String token, String username) {
+    public static void sendUserToken(AuthWebSocket ws, String token, String username, int userID) {
         JsonObject data = new JsonObject();
+        data.addProperty("id", userID);
         data.addProperty("token", token);
         data.addProperty("username", username);
         WsPackage.create().resource(Resource.USER).action(Action.DATA).data(data).send(ws);
