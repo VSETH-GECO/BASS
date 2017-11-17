@@ -54,7 +54,20 @@ public class Server extends AuthWebSocketServer {
 
     @Override
     public void onClose(AuthWebSocket webSocket, int i, String s, boolean b) {
-        logger.info(webSocket.getRemoteSocketAddress().getHostString() + " disconnected!");
+        if (webSocket != null) {
+            if (webSocket.getRemoteSocketAddress() != null) {
+                logger.info(webSocket.getRemoteSocketAddress().getHostString() + " disconnected!");
+            } else {
+                logger.warn("Connection without address disconnected!");
+            }
+
+            ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes().put(webSocket.getUser().getUserID(), (byte) 0);
+
+            for (AudioTrack track : AudioManager.getScheduler().getPlaylist().getSortedList()) {
+                ((AudioTrackMetaData) track.getUserData()).getVotes().put(webSocket.getUser().getUserID(), (byte) 0);
+            }
+        }
+
     }
 
     @Override
@@ -273,7 +286,7 @@ public class Server extends AuthWebSocketServer {
                     return;
                 }
 
-                String userID = ws.getUser().getUserID().toString();
+                Integer userID = ws.getUser().getUserID();
                 Byte vote = data.get("vote").getAsByte();
                 int trackID = data.get("id").getAsInt();
 
