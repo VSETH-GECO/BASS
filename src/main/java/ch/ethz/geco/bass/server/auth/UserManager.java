@@ -394,14 +394,4 @@ public class UserManager {
 
         return false;
     }
-
-    // TODO Put in its own (sub-)class?
-    public static void favorite(AuthWebSocket webSocket, JsonObject data) {
-        int userID = webSocket.getUser().getUserID();
-        JsonObject responseData = new JsonObject();
-
-        switch (data.get("intend").getAsString()) {
-            case "add":
-        }
-    }
 }
