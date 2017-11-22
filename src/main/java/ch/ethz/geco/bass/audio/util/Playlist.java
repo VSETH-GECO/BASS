@@ -96,12 +96,17 @@ public class Playlist {
      * @param trackID the ID of the track
      * @param userID  the ID of the user who voted
      * @param vote    the vote
+     * @return false if there is no track with the given ID in the playlist, true otherwise
      */
-    public void setVote(Integer trackID, Integer userID, Byte vote) {
+    public boolean setVote(Integer trackID, Integer userID, Byte vote) {
         AudioTrack track = trackSet.get(trackID);
         if (track != null) {
             ((AudioTrackMetaData) track.getUserData()).getVotes().put(userID, vote);
             resort();
+
+            return true;
+        } else {
+            return false;
         }
     }
 

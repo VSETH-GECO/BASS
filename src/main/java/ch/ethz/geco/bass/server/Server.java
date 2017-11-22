@@ -61,13 +61,16 @@ public class Server extends AuthWebSocketServer {
                 logger.warn("Connection without address disconnected!");
             }
 
-            ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes().put(webSocket.getUser().getUserID(), (byte) 0);
+            if (webSocket.getUser() != null) {
+                ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes().put(webSocket.getUser().getUserID(), (byte) 0);
 
-            for (AudioTrack track : AudioManager.getScheduler().getPlaylist().getSortedList()) {
-                ((AudioTrackMetaData) track.getUserData()).getVotes().put(webSocket.getUser().getUserID(), (byte) 0);
+                for (AudioTrack track : AudioManager.getScheduler().getPlaylist().getSortedList()) {
+                    ((AudioTrackMetaData) track.getUserData()).getVotes().put(webSocket.getUser().getUserID(), (byte) 0);
+                }
             }
+        } else {
+            logger.warn("Websocket was null on disconnect!");
         }
-
     }
 
     @Override
@@ -291,11 +294,12 @@ public class Server extends AuthWebSocketServer {
                 int trackID = data.get("id").getAsInt();
 
                 if (vote <= 1 && vote >= -1) {
-                    if (trackID == 0) {
-                        ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes().put(userID, vote);
-                        RequestSender.broadcastCurrentTrack();
-                    } else {
-                        AudioManager.getScheduler().getPlaylist().setVote(trackID, userID, vote);
+                    if (!AudioManager.getScheduler().getPlaylist().setVote(trackID, userID, vote)) {
+                        AudioTrackMetaData metaData = (AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData();
+                        if (metaData.getTrackID() == trackID) {
+                            metaData.getVotes().put(userID, vote);
+                            RequestSender.broadcastCurrentTrack();
+                        }
                     }
                 }
 
