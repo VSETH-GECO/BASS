@@ -4,6 +4,7 @@ import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
+import ch.ethz.geco.bass.audio.util.Playlist;
 import ch.ethz.geco.bass.server.auth.UserManager;
 import ch.ethz.geco.bass.server.util.FavoriteTrack;
 import ch.ethz.geco.bass.server.util.RequestSender;
@@ -294,11 +295,25 @@ public class Server extends AuthWebSocketServer {
                 int trackID = data.get("id").getAsInt();
 
                 if (vote <= 1 && vote >= -1) {
-                    if (!AudioManager.getScheduler().getPlaylist().setVote(trackID, userID, vote)) {
-                        AudioTrackMetaData metaData = (AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData();
-                        if (metaData.getTrackID() == trackID) {
-                            metaData.getVotes().put(userID, vote);
-                            RequestSender.broadcastCurrentTrack();
+                    // TODO: maybe remove tracks before setting vote to avoid sending player updates multiple times
+                    Playlist playlist = AudioManager.getScheduler().getPlaylist();
+                    AudioTrack currentTrack = AudioManager.getPlayer().getPlayingTrack();
+                    int connections = this.connections().size();
+                    if (playlist.setVote(trackID, userID, vote)) {
+                        AudioTrackMetaData trackMetaData = (AudioTrackMetaData) playlist.getTrack(trackID).getUserData();
+                        if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) connections / 2) - 0.5))) {
+                            playlist.skipTrack(trackID);
+                        }
+                    } else {
+                        AudioTrackMetaData trackMetaData = (AudioTrackMetaData) currentTrack.getUserData();
+                        if (trackMetaData.getTrackID() == trackID) {
+                            trackMetaData.getVotes().put(userID, vote);
+
+                            if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) connections / 2) - 0.5))) {
+                                AudioManager.getScheduler().nextTrack();
+                            } else {
+                                RequestSender.broadcastCurrentTrack();
+                            }
                         }
                     }
                 }
@@ -311,7 +326,7 @@ public class Server extends AuthWebSocketServer {
     private void handleUnauthorized(AuthWebSocket webSocket, Resource resource, Action action) {
         JsonObject data = new JsonObject();
         data.addProperty("action", action.toString());
-        data.addProperty("message", "Your connection is unauthorized. Log in or upgrade to admin to perform this action.");
+        data.addProperty("message", "Your connection is unauthorized. Log in or upgrade to admin for only 9.99 to perform this action.");
 
         WsPackage.create().resource(resource).action(Action.ERROR).data(data).send(webSocket);
     }

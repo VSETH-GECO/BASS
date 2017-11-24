@@ -111,6 +111,33 @@ public class Playlist {
     }
 
     /**
+     * Returns the AudioTrack with the given ID or null of none was found.
+     *
+     * @param trackID the ID of the track
+     * @return the AudioTrack with the given ID or null of none was found
+     */
+    public AudioTrack getTrack(Integer trackID) {
+        return trackSet.get(trackID);
+    }
+
+    /**
+     * Skips the the AudioTrack with the given ID.
+     *
+     * @param trackID the ID of the track to skip
+     * @return if the operation was successful
+     */
+    public boolean skipTrack(Integer trackID) {
+        AudioTrack removedTrack = trackSet.remove(trackID);
+        if (removedTrack != null) {
+            sortedPlaylist.remove(removedTrack);
+            resort();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Resorts the playlist
      */
     public void resort() {
