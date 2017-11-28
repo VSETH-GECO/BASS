@@ -96,13 +96,45 @@ public class Playlist {
      * @param trackID the ID of the track
      * @param userID  the ID of the user who voted
      * @param vote    the vote
+     * @return false if there is no track with the given ID in the playlist, true otherwise
      */
-    public void setVote(Integer trackID, Integer userID, Byte vote) {
+    public boolean setVote(Integer trackID, Integer userID, Byte vote) {
         AudioTrack track = trackSet.get(trackID);
         if (track != null) {
             ((AudioTrackMetaData) track.getUserData()).getVotes().put(userID, vote);
             resort();
+
+            return true;
+        } else {
+            return false;
         }
+    }
+
+    /**
+     * Returns the AudioTrack with the given ID or null of none was found.
+     *
+     * @param trackID the ID of the track
+     * @return the AudioTrack with the given ID or null of none was found
+     */
+    public AudioTrack getTrack(Integer trackID) {
+        return trackSet.get(trackID);
+    }
+
+    /**
+     * Skips the the AudioTrack with the given ID.
+     *
+     * @param trackID the ID of the track to skip
+     * @return if the operation was successful
+     */
+    public boolean skipTrack(Integer trackID) {
+        AudioTrack removedTrack = trackSet.remove(trackID);
+        if (removedTrack != null) {
+            sortedPlaylist.remove(removedTrack);
+            resort();
+            return true;
+        }
+
+        return false;
     }
 
     /**
