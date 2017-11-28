@@ -1,4 +1,4 @@
-FROM geco/oracle-java8
+FROM docker.stammgruppe.eu/ubuntu:1
 
 WORKDIR /bass
 COPY ./target/BASS.jar .
