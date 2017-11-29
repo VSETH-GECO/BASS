@@ -16,8 +16,6 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            agent { label 'docker' }
-
             steps {
                 script {
                     def image = docker.build("docker.stammgruppe.eu/bass:${env.BUILD_NUMBER}")
@@ -26,8 +24,6 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-            agent { label 'docker' }
-
             steps {
                 script {
                     docker.withRegistry('https://docker.stammgruppe.eu', 'docker-stammgruppe') {
