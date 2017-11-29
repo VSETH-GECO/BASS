@@ -1,6 +1,10 @@
 node {
     def image
 
+    stage('Clone Repository') {
+        checkout scm
+    }
+
     stage('Maven Build') {
         docker.image('maven:3-alpine').inside('-v /root/.m2:/root/.m2') {
             stage('Build') {
