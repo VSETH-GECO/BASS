@@ -17,9 +17,7 @@ node {
         /* This builds the actual image; synonymous to
          * docker build on the command line */
 
-        TEMP_GIT_BRANCH=${GIT_BRANCH}
-        MY_GIT_BRANCH="${TEMP_GIT_BRANCH#*/}"
-        image = docker.build("docker.stammgruppe.eu/bass-${MY_GIT_BRANCH}:${env.BUILD_NUMBER}")
+        image = docker.build("docker.stammgruppe.eu/bass-${env.GIT_LOCAL_BRANCH}:${env.BUILD_NUMBER}")
     }
 
     stage('Push Docker Image') {
