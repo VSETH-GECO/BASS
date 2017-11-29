@@ -7,4 +7,3 @@ cache/
 # BASS Stuff
 *.db
 log/
-Jenkinsfile
