@@ -25,7 +25,7 @@ node {
          * First, the incremental build number from Jenkins
          * Second, the 'latest' tag.
          * Pushing multiple tags is cheap, as all the layers are reused. */
-        docker.withRegistry('https://docker.stammgruppe.eu', 'docker-stammgruppe') {
+        docker.withRegistry('https://docker.stammgruppe.eu/v2/', 'docker-stammgruppe') {
             image.push("${env.BUILD_NUMBER}")
             image.push("latest")
         }
