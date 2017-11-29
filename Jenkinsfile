@@ -23,7 +23,7 @@ node {
     stage('Push Docker Image') {
         // Make sure we are logged in to our repository
         withCredentials([usernamePassword(credentialsId: 'docker-stammgruppe', usernameVariable: 'USER', passwordVariable: 'PW')]) {
-            sh 'docker login -u $USER -p $PW'
+            sh 'docker login -u $USER -p $PW docker.stammgruppe.eu'
         }
 
         /* Finally, we'll push the image with two tags:
