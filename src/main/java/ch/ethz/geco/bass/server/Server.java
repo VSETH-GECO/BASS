@@ -46,7 +46,7 @@ public class Server extends AuthWebSocketServer {
 
     @Override
     public void onOpen(AuthWebSocket webSocket, ClientHandshake clientHandshake) {
-        logger.info(webSocket.getRemoteSocketAddress().getHostString() + " connected!");
+        logger.info(clientHandshake.getFieldValue(webSocket.getRemoteSocketAddress().getHostString() + " connected!"));
 
         JsonObject responseData = new JsonObject();
         responseData.addProperty("apiVersion", API_VERSION);
@@ -150,13 +150,6 @@ public class Server extends AuthWebSocketServer {
 
         switch (action) {
             case GET:
-                /*
-                AudioPlayer ap = AudioManager.getPlayer();
-                AudioTrack at = ap.getPlayingTrack();
-                responseData.addProperty("state", ap.isPaused() ? "paused" : ap.getPlayingTrack() == null ? "stopped" : "playing");
-                responseData.add("track", at != null ? (JsonObject) Main.GSON.toJsonTree(at, AudioTrack.class) : null);
-
-                WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(responseData).send(ws);*/
                 RequestSender.broadcastCurrentTrack();
                 break;
 
@@ -252,6 +245,8 @@ public class Server extends AuthWebSocketServer {
 
     private void handleFavorites(AuthWebSocket ws, Action action, JsonObject data) {
         JsonObject responseData = new JsonObject();
+        Type listType = new TypeToken<List<FavoriteTrack>>(){}.getType();
+        JsonArray ele;
 
         if (!ws.isAuthorized()) {
             handleUnauthorized(ws, Resource.FAVORITES, action);
@@ -260,8 +255,7 @@ public class Server extends AuthWebSocketServer {
 
         switch (action) {
             case GET:
-                Type listType = new TypeToken<List<FavoriteTrack>>(){}.getType();
-                JsonArray ele = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(ws.getUser().getUserID()), listType);
+                ele = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(ws.getUser().getUserID()), listType);
                 WsPackage.create().resource(Resource.FAVORITES).action(Action.DATA).data(ele).send(ws);
                 break;
 
@@ -270,6 +264,9 @@ public class Server extends AuthWebSocketServer {
 
                 responseData.addProperty("action", action.toString());
                 WsPackage.create().resource(Resource.FAVORITES).action(Action.SUCCESS).data(responseData).send(ws);
+
+                ele = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(ws.getUser().getUserID()), listType);
+                WsPackage.create().resource(Resource.FAVORITES).action(Action.DATA).data(ele).send(ws);
                 break;
 
             case DELETE:
@@ -277,6 +274,9 @@ public class Server extends AuthWebSocketServer {
 
                 responseData.addProperty("action", action.toString());
                 WsPackage.create().resource(Resource.FAVORITES).action(Action.SUCCESS).data(responseData).send(ws);
+
+                ele = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(ws.getUser().getUserID()), listType);
+                WsPackage.create().resource(Resource.FAVORITES).action(Action.DATA).data(ele).send(ws);
                 break;
 
         }
