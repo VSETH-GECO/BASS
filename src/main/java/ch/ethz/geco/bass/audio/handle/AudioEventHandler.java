@@ -1,6 +1,7 @@
 package ch.ethz.geco.bass.audio.handle;
 
 import ch.ethz.geco.bass.server.util.RequestSender;
+import ch.ethz.geco.bass.util.Stats;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -25,6 +26,9 @@ public class AudioEventHandler extends AudioEventAdapter {
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
         // Inform users of new player state
         RequestSender.broadcastCurrentTrack();
+
+        // Log for statistics
+        Stats.getInstance().trackPlayed(track);
     }
 
     @Override

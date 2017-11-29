@@ -3,6 +3,7 @@ package ch.ethz.geco.bass;
 import ch.ethz.geco.bass.audio.AudioConsumer;
 import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
 import ch.ethz.geco.bass.server.Server;
+import ch.ethz.geco.bass.util.Stats;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -27,6 +28,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
         logger.info("BASS");
         logger.info("The GECO Byro Audio Speaker System. Copyright (c) 2017, Licensed under MIT");
+
+        Stats.getInstance().connect();
 
         // Start web socket server
         //SecureServer server = new SecureServer(8455);
