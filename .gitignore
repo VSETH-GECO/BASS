@@ -3,6 +3,7 @@
 target/
 *.iml
 cache/
+dependency-reduced-pom.xml
 
 # BASS Stuff
 *.db
