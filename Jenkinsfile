@@ -1,5 +1,5 @@
 node {
-    if (${env.BRANCH_NAME} == 'master' || ${env.BRANCH_NAME} == 'dev') {
+    if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'dev') {
         def image
 
         stage('Clone Repository') {
@@ -18,9 +18,9 @@ node {
             /* This builds the actual image; synonymous to
              * docker build on the command line */
 
-            if (${env.BRANCH_NAME} == 'master') {
+            if (env.BRANCH_NAME == 'master') {
                 image = docker.build("docker.stammgruppe.eu/bass:${env.BUILD_NUMBER}")
-            } else if (${env.BRANCH_NAME} == 'dev') {
+            } else if (env.BRANCH_NAME == 'dev') {
                 image = docker.build("docker.stammgruppe.eu/bass-dev:${env.BUILD_NUMBER}")
             }
         }
