@@ -22,7 +22,7 @@ node {
 
     stage('Push Docker Image') {
         // Make sure we are logged in to our repository
-        withCredentials([UsernamePasswordMultiBinding(credentialsId: 'docker-stammgruppe', usernameVariable: 'USER', passwordVariable: 'PW')]) {
+        withCredentials([usernamePassword(credentialsId: 'docker-stammgruppe', usernameVariable: 'USER', passwordVariable: 'PW')]) {
             sh 'docker login -u $USER -p $PW'
         }
 
