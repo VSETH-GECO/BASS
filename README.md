@@ -1,3 +1,5 @@
+[![Build Status](https://jenkins.stammgruppe.eu/buildStatus/icon?job=BASS/master)](https://jenkins.stammgruppe.eu/job/BASS/job/master/)
+
 # BASS
 Byro Audio Speaker System, short BASS, is a "simple" audio player used to manage the speakers in our office.
 Since it's only controllable over web socket, it's only useful in combination with a control interface such as our [Web Interface](https://github.com/VSETH-GECO/BASSctrl).
