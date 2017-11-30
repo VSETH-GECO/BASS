@@ -12,6 +12,8 @@ node {
                     sh 'mvn -B clean install'
                 }
             }
+
+            archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
         }
 
         stage('Build Docker Image') {
