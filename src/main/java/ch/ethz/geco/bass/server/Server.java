@@ -20,8 +20,12 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -30,7 +34,7 @@ import java.util.List;
 public class Server extends AuthWebSocketServer {
     private static final String API_VERSION = "v1";
     public enum Resource {APP, PLAYER, QUEUE, USER, FAVORITES, TRACK}
-    public enum Action {GET, SET, ADD, DELETE, LOGIN, LOGOUT, INFORM, URI, REGISTER, VOTE, SETADMIN, SUCCESS, ERROR, DATA;
+    public enum Action {GET, SET, ADD, DELETE, LOGIN, LOGOUT, INFORM, URI, REGISTER, VOTE, SETADMIN, SUCCESS, ERROR, DATA, UPDATE;
 
         @Override
         public String toString() {
@@ -140,9 +144,48 @@ public class Server extends AuthWebSocketServer {
 
     private void handleApp(AuthWebSocket webSocket, Action action, JsonObject data) {
         JsonObject responseData = new JsonObject();
-        responseData.addProperty("action", action.toString());
 
-        WsPackage.create().resource(Resource.APP).action(Action.SUCCESS).data(responseData).send(webSocket);
+        switch (action) {
+            case INFORM:
+                responseData.addProperty("action", action.toString());
+
+                WsPackage.create().resource(Resource.APP).action(Action.SUCCESS).data(responseData).send(webSocket);
+                break;
+
+            case UPDATE:
+                if (webSocket.isAuthorized() && webSocket.getUser().isAdmin()) {
+                    BufferedInputStream inStream;
+                    FileOutputStream outStream;
+                    try {
+                        // Update on progress
+                        responseData.addProperty("status", "Downloading new jar...");
+                        WsPackage.create().resource(Resource.APP).action(Action.UPDATE).data(responseData).send(webSocket);
+
+                        // Download stuff
+                        URL fileUrlObj=new URL("https://jenkins.stammgruppe.eu/job/BASS/job/dev/lastSuccessfulBuild/artifact/target/BASS-shaded.jar");
+                        inStream = new BufferedInputStream(fileUrlObj.openStream());
+                        outStream = new FileOutputStream("./bass.jar");
+
+                        byte fileData[] = new byte[1024];
+                        int count;
+                        while ((count = inStream.read(fileData, 0, 1024)) != -1) {
+                            outStream.write(fileData, 0, count);
+                        }
+                        inStream.close();
+                        outStream.close();
+
+                        // Update on restart
+                        responseData = new JsonObject();
+                        responseData.addProperty("status", "Download finished, restarting...");
+                        WsPackage.create().resource(Resource.APP).action(Action.UPDATE).data(responseData).send(webSocket);
+
+                        this.stopSocket();
+                        System.exit(8);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+        }
     }
 
     private void handlePlayer(AuthWebSocket ws, Action action, JsonObject data) {
