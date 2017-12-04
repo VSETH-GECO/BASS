@@ -7,10 +7,13 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
+    public static final AtomicInteger trackCount = new AtomicInteger(0);
     private final AudioPlayer player;
     private final Playlist playlist;
 

@@ -1,6 +1,7 @@
 package ch.ethz.geco.bass.audio.handle;
 
 import ch.ethz.geco.bass.audio.AudioManager;
+import ch.ethz.geco.bass.audio.TrackScheduler;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import ch.ethz.geco.bass.server.AuthWebSocket;
 import ch.ethz.geco.bass.server.Server;
@@ -16,7 +17,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class BASSAudioResultHandler implements AudioLoadResultHandler {
-    private static final AtomicInteger trackCount = new AtomicInteger(0);
     private AuthWebSocket webSocket;
 
     public BASSAudioResultHandler(AuthWebSocket webSocket) {
@@ -26,7 +26,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
     @Override
     public void trackLoaded(AudioTrack audioTrack) {
         // Add metadata
-        AudioTrackMetaData metaData = new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID(), webSocket.getUser().getName());
+        AudioTrackMetaData metaData = new AudioTrackMetaData(TrackScheduler.trackCount.getAndIncrement(), webSocket.getUser().getUserID(), webSocket.getUser().getName());
         audioTrack.setUserData(metaData);
 
         // Queue track
@@ -34,9 +34,6 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
 
         // Reply to user
         WsPackage.create().resource(Server.Resource.QUEUE).action(Server.Action.SUCCESS).send(webSocket);
-
-        // Inform all connected users
-        RequestSender.broadcastPlaylist();
     }
 
     @Override
@@ -61,11 +58,12 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
     public void playlistLoaded(AudioPlaylist audioPlaylist) {
         List<AudioTrack> playlist = audioPlaylist.getTracks();
 
-        for (int i = 0; i < playlist.size(); i++) {
-            AudioTrack track = playlist.get(i);
-            track.setUserData(new AudioTrackMetaData(trackCount.getAndIncrement(), webSocket.getUser().getUserID(), webSocket.getUser().getName()));
-            AudioManager.getScheduler().queue(track, i == playlist.size() - 1);
+        for (AudioTrack track : playlist) {
+            track.setUserData(new AudioTrackMetaData(TrackScheduler.trackCount.getAndIncrement(), webSocket.getUser().getUserID(), webSocket.getUser().getName()));
+            AudioManager.getScheduler().queue(track, false);
         }
+
+        AudioManager.getScheduler().getPlaylist().resort();
 
         // Reply to user
         WsPackage.create().resource(Server.Resource.QUEUE).action(Server.Action.SUCCESS).send(webSocket);

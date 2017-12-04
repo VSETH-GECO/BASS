@@ -28,7 +28,8 @@ public class AudioEventHandler extends AudioEventAdapter {
         RequestSender.broadcastCurrentTrack();
 
         // Log for statistics
-        Stats.getInstance().trackPlayed(track);
+        // Disabled this because of missing local database
+        //Stats.getInstance().trackPlayed(track);
     }
 
     @Override
