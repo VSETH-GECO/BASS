@@ -26,7 +26,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
     @Override
     public void trackLoaded(AudioTrack audioTrack) {
         // Add metadata
-        AudioTrackMetaData metaData = new AudioTrackMetaData(TrackScheduler.trackCount.getAndIncrement(), webSocket.getUser().getUserID(), webSocket.getUser().getName());
+        AudioTrackMetaData metaData = new AudioTrackMetaData(AudioManager.getScheduler().trackCount.getAndIncrement(), webSocket.getUser().getUserID(), webSocket.getUser().getName());
         audioTrack.setUserData(metaData);
 
         // Queue track
@@ -59,7 +59,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         List<AudioTrack> playlist = audioPlaylist.getTracks();
 
         for (AudioTrack track : playlist) {
-            track.setUserData(new AudioTrackMetaData(TrackScheduler.trackCount.getAndIncrement(), webSocket.getUser().getUserID(), webSocket.getUser().getName()));
+            track.setUserData(new AudioTrackMetaData(AudioManager.getScheduler().trackCount.getAndIncrement(), webSocket.getUser().getUserID(), webSocket.getUser().getName()));
             AudioManager.getScheduler().queue(track, false);
         }
 

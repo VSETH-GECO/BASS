@@ -66,17 +66,22 @@ public class PlayerStateKeeper {
             Connection con = SQLite.getConnection();
 
             AudioPlayer audioPlayer = AudioManager.getPlayer();
-            JsonObject currentTrack = Main.GSON.toJsonTree(audioPlayer.getPlayingTrack(), AudioTrack.class).getAsJsonObject();
+
+            JsonObject currentTrack;
+            if (audioPlayer.getPlayingTrack() != null) {
+                currentTrack = Main.GSON.toJsonTree(audioPlayer.getPlayingTrack(), AudioTrack.class).getAsJsonObject();
+            } else {
+                currentTrack = new JsonObject();
+            }
+
             Type playlistType = new TypeToken<List<AudioTrack>>() {
             }.getType();
             JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), playlistType);
 
-            System.out.println(currentTrack.toString());
-
             PreparedStatement insertStatement = con.prepareStatement("INSERT OR REPLACE INTO Players VALUES (?,?,?,?,?);");
             insertStatement.setInt(1, ID);
             insertStatement.setInt(2, audioPlayer.isPaused() ? 1 : 0);
-            insertStatement.setInt(3, TrackScheduler.trackCount.get());
+            insertStatement.setInt(3, AudioManager.getScheduler().trackCount.get());
             insertStatement.setString(4, currentTrack.toString());
             insertStatement.setString(5, trackList.toString());
             insertStatement.executeUpdate();
@@ -108,20 +113,24 @@ public class PlayerStateKeeper {
                 String jsonPlaylist = result.getString("Playlist");
 
                 // Set track counter
-                TrackScheduler.trackCount.set(result.getInt("TrackCount"));
+                AudioManager.getScheduler().trackCount.set(result.getInt("TrackCount"));
 
                 // Load current track
                 JsonObject currentTrack = jsonParser.parse(jsonTrack).getAsJsonObject();
-                AudioManager.getAudioPlayerManager().loadItemOrdered(PlayerStateKeeper.class, currentTrack.get("uri").getAsString(), new DeserializeLoadResultHandler(currentTrack)).get();
 
-                // Load playlist
-                for (JsonElement element : jsonParser.parse(jsonPlaylist).getAsJsonArray()) {
-                    JsonObject track = element.getAsJsonObject();
-                    AudioManager.getAudioPlayerManager().loadItemOrdered(PlayerStateKeeper.class, track.get("uri").getAsString(), new DeserializeLoadResultHandler(track));
+                // Only proceed if there was actually a track running at save time
+                if (currentTrack.entrySet().size() > 0) {
+                    AudioManager.getAudioPlayerManager().loadItemOrdered(PlayerStateKeeper.class, currentTrack.get("uri").getAsString(), new DeserializeLoadResultHandler(currentTrack)).get();
+
+                    // Load playlist
+                    for (JsonElement element : jsonParser.parse(jsonPlaylist).getAsJsonArray()) {
+                        JsonObject track = element.getAsJsonObject();
+                        AudioManager.getAudioPlayerManager().loadItemOrdered(PlayerStateKeeper.class, track.get("uri").getAsString(), new DeserializeLoadResultHandler(track));
+                    }
+
+                    // Resort playlist
+                    AudioManager.getScheduler().getPlaylist().resort();
                 }
-
-                // Resort playlist
-                AudioManager.getScheduler().getPlaylist().resort();
             }
         } catch (InterruptedException | ExecutionException |SQLException e) {
             ErrorHandler.handleLocal(e);

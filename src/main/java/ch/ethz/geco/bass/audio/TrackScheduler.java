@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
-    public static final AtomicInteger trackCount = new AtomicInteger(0);
+    public final AtomicInteger trackCount = new AtomicInteger(0);
     private final AudioPlayer player;
     private final Playlist playlist;
 
