@@ -3,9 +3,6 @@ package ch.ethz.geco.bass.server;
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
-import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
-import ch.ethz.geco.bass.audio.util.Playlist;
-import ch.ethz.geco.bass.server.auth.User;
 import ch.ethz.geco.bass.server.auth.UserManager;
 import ch.ethz.geco.bass.server.util.FavoriteTrack;
 import ch.ethz.geco.bass.server.util.RequestSender;
@@ -68,11 +65,7 @@ public class Server extends AuthWebSocketServer {
             }
 
             if (webSocket.getUser() != null) {
-                ((AudioTrackMetaData) AudioManager.getPlayer().getPlayingTrack().getUserData()).getVotes().put(webSocket.getUser().getUserID(), (byte) 0);
-
-                for (AudioTrack track : AudioManager.getScheduler().getPlaylist().getSortedList()) {
-                    ((AudioTrackMetaData) track.getUserData()).getVotes().put(webSocket.getUser().getUserID(), (byte) 0);
-                }
+                VoteHandler.scheduleExpiry(webSocket.getUser().getUserID());
             }
         } else {
             logger.warn("Websocket was null on disconnect!");
@@ -361,34 +354,10 @@ public class Server extends AuthWebSocketServer {
                     return;
                 }
 
-                Integer userID = ws.getUser().getUserID();
                 Byte vote = data.get("vote").getAsByte();
                 int trackID = data.get("id").getAsInt();
 
-                if (vote <= 1 && vote >= -1) {
-                    // TODO: maybe remove tracks before setting vote to avoid sending player updates multiple times
-                    Playlist playlist = AudioManager.getScheduler().getPlaylist();
-                    AudioTrack currentTrack = AudioManager.getPlayer().getPlayingTrack();
-                    int connections = this.connections().size();
-                    if (playlist.setVote(trackID, userID, vote)) {
-                        AudioTrackMetaData trackMetaData = (AudioTrackMetaData) playlist.getTrack(trackID).getUserData();
-                        if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) connections / 2) - 0.5))) {
-                            playlist.skipTrack(trackID);
-                        }
-                    } else {
-                        AudioTrackMetaData trackMetaData = (AudioTrackMetaData) currentTrack.getUserData();
-                        if (trackMetaData.getTrackID() == trackID) {
-                            trackMetaData.getVotes().put(userID, vote);
-
-                            if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) connections / 2) - 0.5))) {
-                                AudioManager.getScheduler().nextTrack();
-                            } else {
-                                RequestSender.broadcastCurrentTrack();
-                            }
-                        }
-                    }
-                }
-
+                VoteHandler.handle(ws, trackID, vote);
                 break;
         }
     }
