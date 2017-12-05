@@ -17,7 +17,7 @@ On connect
   "resource": "app",
   "action": "success",
   "data": {
-    "apiVersion": "v1"
+    "apiVersion": "v2"
   }
 }
 ```
@@ -164,7 +164,7 @@ Register a new user:
 ```json
 {
   "resource": "user",
-  "action": "register",
+  "action": "add",
   "data": {
     "username": "another user",
     "password": "thesecurestpassword"
@@ -172,13 +172,13 @@ Register a new user:
 }
 ```
 
-Update a users admin privilege
+Update a user
 ```json
 {
   "resource": "user",
-  "action": "setadmin",
+  "action": "update",
   "data": {
-    "username": "another user",
+    "userID": 1337,
     "admin": false
   }
 }
@@ -190,7 +190,7 @@ Delete a user
   "resource": "user",
   "action": "delete",
   "data": {
-    "username": "another user"
+    "userID": "another user"
   }
 }
 ```

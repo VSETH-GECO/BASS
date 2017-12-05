@@ -41,7 +41,7 @@ public class UserManager {
 
                 // TODO: Remove static user in prod
                 UserManager.register(null, "admin", "password");
-                UserManager.setAdmin(null, "admin", true);
+                UserManager.setAdmin(null, 1, true);
             } else {
                 logger.debug("User table already exists.");
             }
@@ -211,7 +211,7 @@ public class UserManager {
                 insertStatement.executeUpdate();
 
                 if (webSocket != null) {
-                    WsPackage.create().resource(Resource.USER).action(Action.REGISTER).send(webSocket);
+                    WsPackage.create().resource(Resource.USER).action(Action.ADD).send(webSocket);
                 }
             } else {
                 // Name already taken
@@ -232,30 +232,52 @@ public class UserManager {
      * It currently requires a new login for the changes to take action.
      *
      * @param webSocket the web socket that wants to update a user
-     * @param userName of the user to be update
+     * @param userID of the user to be update
      * @param isAdmin value that should be set
      */
-    public static void setAdmin(AuthWebSocket webSocket, String userName, boolean isAdmin) {
+    public static int setAdmin(AuthWebSocket webSocket, int userID, boolean isAdmin) {
         // TODO add direct update of the connection with the updated user if one exists.
         try {
             Connection con = SQLite.getConnection();
-            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Admin = ? WHERE Name = ?");
+            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Admin = ? WHERE ID = ?");
             updateStatement.setInt(1, isAdmin ? 1 : 0); // Because SQLite does not support booleans apparently
-            updateStatement.setString(2, userName);
-            int updatedRows = updateStatement.executeUpdate();
+            updateStatement.setInt(2, userID);
+            return updateStatement.executeUpdate();
 
-            if (webSocket != null) {
-                if (updatedRows == 0) {
-                    JsonObject data = new JsonObject();
-                    data.addProperty("message", "User with that name was not found. Nothing changed.");
-                    RequestSender.sendError(webSocket, Resource.USER, data);
-                } else {
-                    WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).send(webSocket);
-                }
-            }
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
+
+        return -1;
+    }
+
+    /**
+     * Fetches a list of currently registered users
+     *
+     * @return a list of users with their relevant information
+     */
+    public static List<User> getUsers() {
+        try {
+            List<User> users = new ArrayList<>();
+            Connection con = SQLite.getConnection();
+
+            PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Users ;");
+            ResultSet queryResult = queryStatement.executeQuery();
+
+            while (queryResult.next()) {
+                User user = new User(queryResult.getInt("ID"),
+                        queryResult.getString("Name"),
+                        queryResult.getBoolean("Admin"));
+
+                users.add(user);
+            }
+
+            return users;
+        } catch (SQLException e) {
+            ErrorHandler.handleLocal(e);
+        }
+
+        return null;
     }
 
     /**
@@ -280,6 +302,36 @@ public class UserManager {
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
+    }
+
+    public static int setUsername(AuthWebSocket webSocket, int userID, String name) {
+        // TODO add direct update of the connection with the updated user if one exists.
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Name = ? WHERE ID = ?");
+            updateStatement.setString(1, name);
+            updateStatement.setInt(2, userID);
+            return updateStatement.executeUpdate();
+        } catch (SQLException e) {
+            RequestSender.handleInternalError(webSocket, e);
+        }
+
+        return -1;
+    }
+
+    public static int setPassword(AuthWebSocket webSocket, int userID, String password) {
+        // TODO add direct update of the connection with the updated user if one exists.
+        try {
+            Connection con = SQLite.getConnection();
+            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Name = ? WHERE ID = ?");
+            updateStatement.setString(1, BCrypt.hashpw(password, BCrypt.gensalt()));
+            updateStatement.setInt(2, userID);
+            return updateStatement.executeUpdate();
+        } catch (SQLException e) {
+            RequestSender.handleInternalError(webSocket, e);
+        }
+
+        return -1;
     }
 
     /**

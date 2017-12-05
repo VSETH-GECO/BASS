@@ -5,6 +5,7 @@ import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import ch.ethz.geco.bass.audio.util.Playlist;
+import ch.ethz.geco.bass.server.auth.User;
 import ch.ethz.geco.bass.server.auth.UserManager;
 import ch.ethz.geco.bass.server.util.FavoriteTrack;
 import ch.ethz.geco.bass.server.util.RequestSender;
@@ -32,9 +33,9 @@ import java.util.List;
  * Server class
  */
 public class Server extends AuthWebSocketServer {
-    private static final String API_VERSION = "v1";
+    private static final String API_VERSION = "v2";
     public enum Resource {APP, PLAYER, QUEUE, USER, FAVORITES, TRACK}
-    public enum Action {GET, SET, ADD, DELETE, LOGIN, LOGOUT, INFORM, URI, REGISTER, VOTE, SETADMIN, SUCCESS, ERROR, DATA, UPDATE;
+    public enum Action {GET, SET, ADD, DELETE, LOGIN, LOGOUT, INFORM, URI, VOTE, SUCCESS, ERROR, DATA, UPDATE;
 
         @Override
         public String toString() {
@@ -261,7 +262,7 @@ public class Server extends AuthWebSocketServer {
                 }
                 break;
 
-            case REGISTER:
+            case ADD:
                 if (!ws.isAuthorized() || !ws.getUser().isAdmin()) {
                     handleUnauthorized(ws, resource, action);
                     return;
@@ -273,17 +274,43 @@ public class Server extends AuthWebSocketServer {
 
                 break;
 
-            case SETADMIN:
+            case UPDATE:
                 if (!ws.isAuthorized() || !ws.getUser().isAdmin()) {
                     handleUnauthorized(ws, resource, action);
                     return;
                 }
 
-                if (data.get("username") != null && data.get("admin") != null) {
-                    UserManager.setAdmin(ws, data.get("username").getAsString(), data.get("admin").getAsBoolean());
+                if (data.get("userID") != null) {
+                    int updatedRows = 0;
+                    if (data.get("admin") != null)
+                        updatedRows += UserManager.setAdmin(ws, data.get("userID").getAsInt(), data.get("admin").getAsBoolean());
+                    if (data.get("name") != null)
+                        updatedRows += UserManager.setUsername(ws, data.get("userID").getAsInt(), data.get("name").getAsString());
+                    if (data.get("password") != null)
+                        updatedRows += UserManager.setPassword(ws, data.get("userID").getAsInt(), data.get("password").getAsString());
+
+                    if (updatedRows == 0) {
+                        responseData = new JsonObject();
+                        responseData.addProperty("message", "User with that ID was not found. Nothing changed.");
+                        RequestSender.sendError(ws, Resource.USER, responseData);
+                    } else {
+                        Type listType = new TypeToken<List<User>>(){}.getType();
+                        JsonArray userList = (JsonArray) Main.GSON.toJsonTree(UserManager.getUsers(), listType);
+                        WsPackage.create().resource(Resource.USER).action(Action.INFORM).data(userList).send(ws);
+                    }
                 }
 
                 break;
+
+            case GET:
+                if (!ws.isAuthorized() || !ws.getUser().isAdmin()) {
+                    handleUnauthorized(ws, resource, action);
+                    return;
+                }
+
+                Type listType = new TypeToken<List<User>>(){}.getType();
+                JsonArray userList = (JsonArray) Main.GSON.toJsonTree(UserManager.getUsers(), listType);
+                WsPackage.create().resource(Resource.USER).action(Action.INFORM).data(userList).send(ws);
         }
     }
 
