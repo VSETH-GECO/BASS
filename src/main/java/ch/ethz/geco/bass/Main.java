@@ -1,6 +1,7 @@
 package ch.ethz.geco.bass;
 
 import ch.ethz.geco.bass.audio.AudioConsumer;
+import ch.ethz.geco.bass.audio.PlayerStateKeeper;
 import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
 import ch.ethz.geco.bass.server.Server;
 import ch.ethz.geco.bass.util.Stats;
@@ -29,7 +30,10 @@ public class Main {
         logger.info("BASS");
         logger.info("The GECO Byro Audio Speaker System. Copyright (c) 2017, Licensed under MIT");
 
-        Stats.getInstance().connect();
+        // Start audio consumer
+        AudioConsumer audioConsumer = new AudioConsumer();
+        audioConsumer.setName("AudioConsumer");
+        audioConsumer.start();
 
         // Start web socket server
         //SecureServer server = new SecureServer(8455);
@@ -37,11 +41,16 @@ public class Main {
         Main.server.setReuseAddr(true);
         server.start();
 
-        // Start audio consumer
-        AudioConsumer audioConsumer = new AudioConsumer();
-        audioConsumer.setName("AudioConsumer");
-        audioConsumer.start();
+        // Disabled this because of missing local database
+        //Stats.getInstance().connect();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> Main.server.stopSocket()));
+        // Restore player state
+        PlayerStateKeeper.load(0);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Main.server.stopSocket();
+
+            PlayerStateKeeper.save(0);
+        }));
     }
 }
