@@ -154,6 +154,7 @@ public class Server extends AuthWebSocketServer {
 
             case UPDATE:
                 if (webSocket.isAuthorized() && webSocket.getUser().isAdmin()) {
+                    String branch = data.get("branch").isJsonObject() ? data.getAsJsonObject("branch").getAsString() : "dev";
                     BufferedInputStream inStream;
                     FileOutputStream outStream;
                     try {
@@ -162,7 +163,7 @@ public class Server extends AuthWebSocketServer {
                         WsPackage.create().resource(Resource.APP).action(Action.UPDATE).data(responseData).send(webSocket);
 
                         // Download stuff
-                        URL fileUrlObj=new URL("https://jenkins.stammgruppe.eu/job/BASS/job/dev/lastSuccessfulBuild/artifact/target/BASS-shaded.jar");
+                        URL fileUrlObj=new URL("https://jenkins.stammgruppe.eu/job/BASS/job/" + branch + "/lastSuccessfulBuild/artifact/target/BASS-shaded.jar");
                         inStream = new BufferedInputStream(fileUrlObj.openStream());
                         outStream = new FileOutputStream("./bass.jar");
 
@@ -382,7 +383,7 @@ public class Server extends AuthWebSocketServer {
 
         // Shutdown socket to free port
         try {
-            this.stop(1000);
+            this.stop(100000);
         } catch (InterruptedException e) {
             ErrorHandler.handleLocal(e);
         }
