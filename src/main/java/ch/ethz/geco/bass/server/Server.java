@@ -3,6 +3,7 @@ package ch.ethz.geco.bass.server;
 import ch.ethz.geco.bass.Main;
 import ch.ethz.geco.bass.audio.AudioManager;
 import ch.ethz.geco.bass.audio.handle.BASSAudioResultHandler;
+import ch.ethz.geco.bass.server.auth.User;
 import ch.ethz.geco.bass.server.auth.UserManager;
 import ch.ethz.geco.bass.server.util.FavoriteTrack;
 import ch.ethz.geco.bass.server.util.RequestSender;
