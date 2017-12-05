@@ -3,6 +3,7 @@ package ch.ethz.geco.bass.server.auth;
 import ch.ethz.geco.bass.server.AuthWebSocket;
 import ch.ethz.geco.bass.server.Server.Action;
 import ch.ethz.geco.bass.server.Server.Resource;
+import ch.ethz.geco.bass.server.VoteHandler;
 import ch.ethz.geco.bass.server.util.FavoriteTrack;
 import ch.ethz.geco.bass.server.util.RequestSender;
 import ch.ethz.geco.bass.server.util.WsPackage;
@@ -113,6 +114,9 @@ public class UserManager {
                     User user = new User(userID, userName, isAdmin);
                     webSocket.setAuthorizedUser(user);
 
+                    // Remove vote expiry
+                    VoteHandler.removeExpiry(userID);
+
                     RequestSender.sendUserToken(webSocket, token, userName, userID, isAdmin);
                 } else {
                     // Wrong password
@@ -157,6 +161,9 @@ public class UserManager {
                     webSocket.setAuthorizedUser(user);
 
                     refreshToken(token);
+
+                    // Remove vote expiry
+                    VoteHandler.removeExpiry(userID);
 
                     RequestSender.sendUserToken(webSocket, token, userName, userID, isAdmin);
                 } else {
