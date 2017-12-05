@@ -6,6 +6,7 @@ import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import ch.ethz.geco.bass.audio.util.Playlist;
 import ch.ethz.geco.bass.server.util.RequestSender;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import org.java_websocket.WebSocket;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,15 +45,20 @@ public class VoteHandler {
     public static void handle(AuthWebSocket webSocket, int trackID, byte vote) {
         int userID = webSocket.getUser().getUserID();
 
-
         if (vote <= 1 && vote >= -1) {
+            int authorizedUsers = 0;
+            for (WebSocket connection : Main.server.connections()) {
+                if (((AuthWebSocket) connection).getUser() != null) {
+                    authorizedUsers++;
+                }
+            }
+
             // TODO: maybe remove tracks before setting vote to avoid sending player updates multiple times
             Playlist playlist = AudioManager.getScheduler().getPlaylist();
             AudioTrack currentTrack = AudioManager.getPlayer().getPlayingTrack();
-            int connections = Main.server.connections().size();
             if (playlist.setVote(trackID, userID, vote)) {
                 AudioTrackMetaData trackMetaData = (AudioTrackMetaData) playlist.getTrack(trackID).getUserData();
-                if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) connections / 2) - 0.5))) {
+                if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) authorizedUsers / 2) - 0.5))) {
                     playlist.skipTrack(trackID);
                 }
             } else {
@@ -60,7 +66,7 @@ public class VoteHandler {
                 if (trackMetaData.getTrackID() == trackID) {
                     trackMetaData.getVotes().put(userID, vote);
 
-                    if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) connections / 2) - 0.5))) {
+                    if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) authorizedUsers / 2) - 0.5))) {
                         AudioManager.getScheduler().nextTrack();
                     } else {
                         RequestSender.broadcastCurrentTrack();
