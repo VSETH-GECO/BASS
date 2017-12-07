@@ -1,7 +1,6 @@
 package ch.ethz.geco.bass.audio.handle;
 
 import ch.ethz.geco.bass.audio.AudioManager;
-import ch.ethz.geco.bass.audio.TrackScheduler;
 import ch.ethz.geco.bass.audio.util.AudioTrackMetaData;
 import ch.ethz.geco.bass.server.AuthWebSocket;
 import ch.ethz.geco.bass.server.Server;
@@ -14,7 +13,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class BASSAudioResultHandler implements AudioLoadResultHandler {
     private AuthWebSocket webSocket;

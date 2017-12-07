@@ -4,7 +4,6 @@ import ch.ethz.geco.bass.audio.AudioConsumer;
 import ch.ethz.geco.bass.audio.PlayerStateKeeper;
 import ch.ethz.geco.bass.audio.gson.AudioTrackSerializer;
 import ch.ethz.geco.bass.server.Server;
-import ch.ethz.geco.bass.util.Stats;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;

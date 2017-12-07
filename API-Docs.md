@@ -101,7 +101,7 @@ Response:
       "uri": "https://www.youtube.com/watch?v=xEYftmh4wz0",
       "userID": "2",
       "userName": "another user",
-      "title": "The harddest of russian hardbass",
+      "title": "The hardest of russian hardbass",
       "voters": [],
       "votes": 0,
       "length": 1005000,
