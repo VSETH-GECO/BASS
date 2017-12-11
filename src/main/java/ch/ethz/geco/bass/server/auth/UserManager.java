@@ -330,7 +330,7 @@ public class UserManager {
         // TODO add direct update of the connection with the updated user if one exists.
         try {
             Connection con = SQLite.getConnection();
-            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Name = ? WHERE ID = ?");
+            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Password = ? WHERE ID = ?");
             updateStatement.setString(1, BCrypt.hashpw(password, BCrypt.gensalt()));
             updateStatement.setInt(2, userID);
             return updateStatement.executeUpdate();
