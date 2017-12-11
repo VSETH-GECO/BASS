@@ -33,7 +33,9 @@ import java.util.List;
 public class Server extends AuthWebSocketServer {
     private static final String API_VERSION = "v2";
     public enum Resource {APP, PLAYER, QUEUE, USER, FAVORITES, TRACK}
-    public enum Action {GET, SET, ADD, DELETE, LOGIN, LOGOUT, INFORM, URI, VOTE, SUCCESS, ERROR, DATA, UPDATE;
+
+    public enum Action {
+        GET, SET, ADD, DELETE, LOGIN, LOGOUT, INFORM, VOTE, SUCCESS, ERROR, DATA, UPDATE;
 
         @Override
         public String toString() {
@@ -213,7 +215,7 @@ public class Server extends AuthWebSocketServer {
                 WsPackage.create().resource(Resource.QUEUE).action(Action.DATA).data(trackList).send(ws);
                 break;
 
-            case URI:
+            case ADD:
                 if (!ws.isAuthorized()) {
                     handleUnauthorized(ws, Resource.QUEUE, action);
                     return;
@@ -269,19 +271,19 @@ public class Server extends AuthWebSocketServer {
                 break;
 
             case UPDATE:
-                if (!ws.isAuthorized() || !ws.getUser().isAdmin()) {
-                    handleUnauthorized(ws, resource, action);
-                    return;
-                }
 
-                if (data.get("userID") != null) {
+                if (data.get("userID") != null && ws.isAuthorized()) {
                     int updatedRows = 0;
-                    if (data.get("admin") != null)
-                        updatedRows += UserManager.setAdmin(ws, data.get("userID").getAsInt(), data.get("admin").getAsBoolean());
-                    if (data.get("name") != null)
-                        updatedRows += UserManager.setUsername(ws, data.get("userID").getAsInt(), data.get("name").getAsString());
-                    if (data.get("password") != null)
+                    int userID = data.get("userID").getAsInt();
+
+                    if (data.get("password") != null && (ws.getUser().getUserID() == userID || ws.getUser().isAdmin()))
                         updatedRows += UserManager.setPassword(ws, data.get("userID").getAsInt(), data.get("password").getAsString());
+
+                    if (data.get("admin") != null && ws.getUser().isAdmin())
+                        updatedRows += UserManager.setAdmin(ws, data.get("userID").getAsInt(), data.get("admin").getAsBoolean());
+
+                    if (data.get("name") != null && ws.getUser().isAdmin())
+                        updatedRows += UserManager.setUsername(ws, data.get("userID").getAsInt(), data.get("name").getAsString());
 
                     if (updatedRows == 0) {
                         responseData = new JsonObject();
