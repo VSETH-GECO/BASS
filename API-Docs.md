@@ -11,7 +11,7 @@ Every interaction between BASS and it's users works over one standardized json f
 Whereby `data` can be an arbitrary object or `null`.
 
 ## Connection
-On connect
+On connect the player will send send this to the client.
 ```json
 {
   "resource": "app",
@@ -101,7 +101,7 @@ Response:
       "uri": "https://www.youtube.com/watch?v=xEYftmh4wz0",
       "userID": "2",
       "userName": "another user",
-      "title": "The harddest of russian hardbass",
+      "title": "The hardest of russian hardbass",
       "voters": [],
       "votes": 0,
       "length": 1005000,
@@ -115,7 +115,7 @@ Request new track \
 ```json
 {
   "resource": "queue",
-  "action": "uri",
+  "action": "add",
   "data": {
     "uri": "https://youtube.com/watch?v=abcdef"
   }
@@ -138,7 +138,7 @@ Vote on track, id is the track's id and vote can be 1/-1/0 being a up-/down- or 
 ```
 
 ## User
-Logging in:
+Logging in with your credentials:
 ```json
 {
   "resource": "user",
@@ -149,6 +149,31 @@ Logging in:
   }
 }
 ```
+Logging in with your token:
+```json
+{
+  "resource": "user",
+  "action": "login",
+  "data": {
+    "token": "your-token"
+  }
+}
+```
+
+Upon successful login the client receives the following package:
+```json
+{
+  "resource": "user",
+  "action": "data",
+  "data": {
+    "admin": false,
+    "id": 0,
+    "token": "your-new-token",
+    "username": "generic user"
+  }
+}
+```
+The token is valid for 24h.
 
 Logging out:
 ```json
@@ -159,7 +184,8 @@ Logging out:
 }
 ```
 
-*All following request require admin rights and being logged in* \
+*All following request require admin rights and being logged in.* \
+*Except for updating your own password, that just needs you to be logged in.* \
 Register a new user:
 ```json
 {
@@ -179,7 +205,9 @@ Update a user
   "action": "update",
   "data": {
     "userID": 1337,
-    "admin": false
+    "admin": false,
+    "name": "new name",
+    "password": "new password"
   }
 }
 ```
@@ -223,7 +251,7 @@ Remove a track from your users favorites:
 ```json
 {
   "resource": "favorites",
-  "action": "remove",
+  "action": "delete",
   "data": {
     "uri": "https://www.youtube.com/watch?v=xEYftmh4wz0"
   }

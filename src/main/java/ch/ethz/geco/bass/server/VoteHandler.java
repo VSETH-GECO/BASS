@@ -71,7 +71,7 @@ public class VoteHandler {
                     if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) authorizedUsers / 2) - 0.5))) {
                         AudioManager.getScheduler().nextTrack();
                     } else {
-                        RequestSender.broadcastCurrentTrack();
+                        RequestSender.broadcastPlayerState();
                     }
                 }
             }

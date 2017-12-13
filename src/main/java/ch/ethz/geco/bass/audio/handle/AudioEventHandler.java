@@ -1,9 +1,7 @@
 package ch.ethz.geco.bass.audio.handle;
 
 import ch.ethz.geco.bass.audio.AudioManager;
-import ch.ethz.geco.bass.audio.TrackScheduler;
 import ch.ethz.geco.bass.server.util.RequestSender;
-import ch.ethz.geco.bass.util.Stats;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -20,18 +18,18 @@ public class AudioEventHandler extends AudioEventAdapter {
 
     @Override
     public void onPlayerPause(AudioPlayer player) {
-        RequestSender.broadcastCurrentTrack();
+        RequestSender.broadcastPlayerState();
     }
 
     @Override
     public void onPlayerResume(AudioPlayer player) {
-        RequestSender.broadcastCurrentTrack();
+        RequestSender.broadcastPlayerState();
     }
 
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
         // Inform users of new player state
-        RequestSender.broadcastCurrentTrack();
+        RequestSender.broadcastPlayerState();
 
         // Log for statistics
         // Disabled this because of missing local database
