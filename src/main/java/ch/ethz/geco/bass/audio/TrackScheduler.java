@@ -42,11 +42,13 @@ public class TrackScheduler extends AudioEventAdapter {
 
     /**
      * Start the next track, stopping the current one if it is playing.
+     *
+     * @return True if the track was started
      */
-    public void nextTrack() {
+    public boolean nextTrack() {
         // Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
         // giving null to startTrack, which is a valid argument and will simply stop the player.
-        player.startTrack(playlist.poll(), false);
+        return player.startTrack(playlist.poll(), false);
 
     }
 
@@ -54,7 +56,9 @@ public class TrackScheduler extends AudioEventAdapter {
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         // Only start the next track if the end reason is suitable for it (FINISHED or LOAD_FAILED)
         if (endReason.mayStartNext) {
-            nextTrack();
+            if (!nextTrack()) {
+                player.setPaused(false);
+            }
         }
     }
 
