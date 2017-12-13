@@ -180,7 +180,7 @@ public class Server extends AuthWebSocketServer {
                         this.stopSocket();
                         System.exit(8);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        ErrorHandler.handleLocal(e);
                     }
                 }
         }
