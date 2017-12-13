@@ -67,6 +67,7 @@ public class Server extends AuthWebSocketServer {
 
             if (webSocket.getUser() != null) {
                 VoteHandler.scheduleExpiry(webSocket.getUser().getUserID());
+                VoteHandler.recheckPlaylist();
             }
         } else {
             logger.warn("Websocket was null on disconnect!");

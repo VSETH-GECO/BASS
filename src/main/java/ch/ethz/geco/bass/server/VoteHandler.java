@@ -26,7 +26,7 @@ public class VoteHandler {
     private static final int EXPIRATION_TIME = 60000;
 
     static {
-        // Periodically remove old session tokens every minute
+        // Periodically expire votes of disconnected users
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -61,8 +61,10 @@ public class VoteHandler {
                 if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) authorizedUsers / 2) - 0.5))) {
                     playlist.skipTrack(trackID);
                 }
-            } else {
+            } else if (currentTrack != null) { // Maybe it's the current track
                 AudioTrackMetaData trackMetaData = (AudioTrackMetaData) currentTrack.getUserData();
+                
+                // Check if we actually want to vote on the current track or if the trackID is simply invalid
                 if (trackMetaData.getTrackID() == trackID) {
                     trackMetaData.getVotes().put(userID, vote);
 
@@ -72,6 +74,34 @@ public class VoteHandler {
                         RequestSender.broadcastCurrentTrack();
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Rechecks every track in the playlist including the current running track if they can be removed now.
+     * Call this if a user disconnected.
+     */
+    public static void recheckPlaylist() {
+        int authorizedUsers = 0;
+        for (WebSocket connection : Main.server.connections()) {
+            if (((AuthWebSocket) connection).getUser() != null) {
+                authorizedUsers++;
+            }
+        }
+
+        // Check current track
+        AudioTrackMetaData currentTrack = AudioManager.getPlayer().getPlayingTrack().getUserData(AudioTrackMetaData.class);
+        if (currentTrack.getVoteCount() < Math.negateExact((int) Math.ceil(((double) authorizedUsers / 2) - 0.5))) {
+            AudioManager.getScheduler().nextTrack();
+        }
+
+        // Check playlist
+        for (AudioTrack track : AudioManager.getScheduler().getPlaylist().getSortedList()) {
+            AudioTrackMetaData trackMetaData = track.getUserData(AudioTrackMetaData.class);
+
+            if (trackMetaData.getVoteCount() < Math.negateExact((int) Math.ceil(((double) authorizedUsers / 2) - 0.5))) {
+                AudioManager.getScheduler().nextTrack();
             }
         }
     }
@@ -98,6 +128,8 @@ public class VoteHandler {
      * Removes expired votes from the current track and playlist.
      */
     private static void expireVotes() {
+        boolean expiredSomething = false;
+
         for (Integer userID : expiringUsers.keySet()) {
             // If the votes of the current user expired
             if (expiringUsers.get(userID) > System.currentTimeMillis()) {
@@ -108,7 +140,13 @@ public class VoteHandler {
                 for (AudioTrack track : AudioManager.getScheduler().getPlaylist().getSortedList()) {
                     ((AudioTrackMetaData) track.getUserData()).getVotes().put(userID, (byte) 0);
                 }
+
+                expiredSomething = true;
             }
+        }
+
+        if (expiredSomething) {
+            VoteHandler.recheckPlaylist();
         }
     }
 }
