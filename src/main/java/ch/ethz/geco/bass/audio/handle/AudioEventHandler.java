@@ -18,18 +18,18 @@ public class AudioEventHandler extends AudioEventAdapter {
 
     @Override
     public void onPlayerPause(AudioPlayer player) {
-        RequestSender.broadcastCurrentTrack();
+        RequestSender.broadcastPlayerState();
     }
 
     @Override
     public void onPlayerResume(AudioPlayer player) {
-        RequestSender.broadcastCurrentTrack();
+        RequestSender.broadcastPlayerState();
     }
 
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
         // Inform users of new player state
-        RequestSender.broadcastCurrentTrack();
+        RequestSender.broadcastPlayerState();
 
         // Log for statistics
         // Disabled this because of missing local database

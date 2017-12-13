@@ -191,7 +191,7 @@ public class Server extends AuthWebSocketServer {
 
         switch (action) {
             case GET:
-                RequestSender.broadcastCurrentTrack();
+                RequestSender.sendPlayerState(ws);
                 break;
 
             case SET:

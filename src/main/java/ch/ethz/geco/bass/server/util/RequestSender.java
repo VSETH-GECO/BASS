@@ -27,17 +27,30 @@ public class RequestSender {
         WsPackage.create().resource(Resource.QUEUE).action(Action.DATA).data(trackList).broadcast();
     }
 
-    /**
-     * Broadcasts the current track to all connected web sockets.
-     */
-    public static void broadcastCurrentTrack() {
+    private static JsonObject getPlayerState() {
         JsonObject responseData = new JsonObject();
         AudioPlayer ap = AudioManager.getPlayer();
         AudioTrack at = ap.getPlayingTrack();
         responseData.addProperty("state", ap.isPaused() ? "paused" : ap.getPlayingTrack() == null ? "stopped" : "playing");
         responseData.add("track", at != null ? (JsonObject) Main.GSON.toJsonTree(at, AudioTrack.class) : null);
 
-        WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(responseData).broadcast();
+        return responseData;
+    }
+
+    /**
+     * Broadcasts the player state and current track to all connected web sockets.
+     */
+    public static void broadcastPlayerState() {
+        WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(getPlayerState()).broadcast();
+    }
+
+    /**
+     * Sends the player state and current track to the specified websocket.
+     *
+     * @param ws to send the player state to
+     */
+    public static void sendPlayerState(AuthWebSocket ws) {
+        WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(getPlayerState()).send(ws);
     }
 
     /**
