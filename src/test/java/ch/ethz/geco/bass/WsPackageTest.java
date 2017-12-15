@@ -68,7 +68,6 @@ class WsPackageTest {
         WsPackage.create(Server.Resource.APP, Server.Action.DATA).send(ws);
 
         verify(ws).send(ArgumentMatchers.eq(normalPackage));
-
         verifyNoMoreInteractions(ws);
     }
 
@@ -80,7 +79,6 @@ class WsPackageTest {
         WsPackage.create(Server.Resource.APP, Server.Action.DATA, jo).send(ws);
 
         verify(ws).send(ArgumentMatchers.eq(normalPackageWData));
-
         verifyNoMoreInteractions(ws);
     }
 }
