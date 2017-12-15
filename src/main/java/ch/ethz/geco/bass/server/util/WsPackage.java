@@ -1,11 +1,11 @@
 package ch.ethz.geco.bass.server.util;
 
 import ch.ethz.geco.bass.Main;
+import ch.ethz.geco.bass.server.AuthWebSocket;
 import ch.ethz.geco.bass.server.Server.Action;
 import ch.ethz.geco.bass.server.Server.Resource;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.java_websocket.WebSocket;
 
 public class WsPackage {
     private Resource resource;
@@ -20,10 +20,20 @@ public class WsPackage {
         return new WsPackage(resource, action);
     }
 
+    public static WsPackage create(Resource resource, Action action, JsonObject data) {
+        return new WsPackage(resource, action, data);
+    }
+
     private WsPackage() {}
     private WsPackage(Resource resource, Action action) {
         this.resource = resource;
         this.action = action;
+    }
+
+    private WsPackage(Resource resource, Action action, JsonObject data) {
+        this.resource = resource;
+        this.action = action;
+        this.data = data;
     }
 
     public WsPackage resource(Resource resource) {
@@ -58,7 +68,12 @@ public class WsPackage {
         Main.server.broadcast(makeJson());
     }
 
-    public void send(WebSocket webSocket) {
+    public void send(AuthWebSocket webSocket) {
         webSocket.send(makeJson().toString());
+    }
+
+    @Override
+    public String toString() {
+        return makeJson().toString();
     }
 }
