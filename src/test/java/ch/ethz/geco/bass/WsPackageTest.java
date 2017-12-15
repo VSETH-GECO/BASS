@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @DisplayName("WsPackage test")
 class WsPackageTest {
@@ -56,7 +57,8 @@ class WsPackageTest {
         assertAll(
                 () -> assertThrows(NullPointerException.class, () -> WsPackage.create().toString()),
                 () -> assertThrows(NullPointerException.class, () -> WsPackage.create().resource(Server.Resource.APP).toString()),
-                () -> assertThrows(NullPointerException.class, () -> WsPackage.create().action(Server.Action.DATA).toString())
+                () -> assertThrows(NullPointerException.class, () -> WsPackage.create().action(Server.Action.DATA).toString()),
+                () -> assertThrows(NullPointerException.class, () -> WsPackage.create().data(jo).toString())
         );
     }
 
