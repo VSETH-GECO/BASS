@@ -316,6 +316,14 @@ public class UserManager {
         }
     }
 
+    /**
+     * Sets the username for a user
+     *
+     * @param webSocket to respond to
+     * @param userID    of the user
+     * @param name      to be set
+     * @return 1 on success, 0 on user not found and -1 on database error
+     */
     public static int setUsername(AuthWebSocket webSocket, int userID, String name) {
         // TODO add direct update of the connection with the updated user if one exists.
         try {
@@ -323,7 +331,7 @@ public class UserManager {
             PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Name = ? WHERE ID = ?");
             updateStatement.setString(1, name);
             updateStatement.setInt(2, userID);
-            return updateStatement.executeUpdate();
+            return updateStatement.executeUpdate() > 0 ? 1 : 0;
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
@@ -331,6 +339,14 @@ public class UserManager {
         return -1;
     }
 
+    /**
+     * Set the password for a user
+     *
+     * @param webSocket to respond to
+     * @param userID of the user
+     * @param password to be set
+     * @return 1 on success, 0 on user not found and -1 on database error
+     */
     public static int setPassword(AuthWebSocket webSocket, int userID, String password) {
         // TODO add direct update of the connection with the updated user if one exists.
         try {
@@ -338,7 +354,7 @@ public class UserManager {
             PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Password = ? WHERE ID = ?");
             updateStatement.setString(1, BCrypt.hashpw(password, BCrypt.gensalt()));
             updateStatement.setInt(2, userID);
-            return updateStatement.executeUpdate();
+            return updateStatement.executeUpdate() > 0 ? 1 : 0;
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
@@ -388,6 +404,12 @@ public class UserManager {
         }
     }
 
+    /**
+     * Retrieves a list of the favorite tracks for a user
+     *
+     * @param userID of the user
+     * @return the list of favorites
+     */
     public static List<FavoriteTrack> getFavorites(int userID) {
         ArrayList <FavoriteTrack> favorites = new ArrayList<>();
 
@@ -407,6 +429,13 @@ public class UserManager {
         return favorites;
     }
 
+    /**
+     * Adds a track to a users favorites
+     *
+     * @param userID of the user
+     * @param uri of the track to be added
+     * @param title of the track to be added
+     */
     public static void addFavorite(int userID, String uri, String title) {
         try {
             if (hasFavorite(userID, uri)) {
@@ -425,6 +454,13 @@ public class UserManager {
         }
     }
 
+    /**
+     * Removes a track for a users favorites
+     *
+     * @param userID of the user
+     * @param uri of the track to be removed
+     * @return true if a track was deleted
+     */
     public static boolean removeFavorite(int userID, String uri) {
         try {
             Connection con = SQLite.getConnection();
@@ -442,6 +478,13 @@ public class UserManager {
         return false;
     }
 
+    /**
+     * Checks whether a user has a track in his favorites
+     *
+     * @param userID of the user
+     * @param uri of the track
+     * @return true if the track is in the users favorites
+     */
     private static boolean hasFavorite(int userID, String uri) {
         try {
             Connection con = SQLite.getConnection();
