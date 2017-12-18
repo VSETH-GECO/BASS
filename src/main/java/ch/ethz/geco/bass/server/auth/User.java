@@ -71,10 +71,19 @@ public class User {
         return obj instanceof User && userID.equals(((User) obj).getUserID());
     }
 
+    /**
+     * Returns whether the user is a admin
+     *
+     * @return true if the user is a admin
+     */
     public boolean isAdmin() {
         return isAdmin;
     }
 
+    /**
+     * Set a users admin status
+     * @param admin status to be set
+     */
     public void setAdmin(boolean admin) {
         isAdmin = admin;
     }

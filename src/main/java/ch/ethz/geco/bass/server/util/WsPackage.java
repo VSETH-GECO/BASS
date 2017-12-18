@@ -12,14 +12,34 @@ public class WsPackage {
     private Action action;
     private JsonElement data;
 
+    /**
+     * Create a new and empty WebSocketPackage object. Cannot be send without resource and action set!
+     *
+     * @return new WebSocketPackage object
+     */
     public static WsPackage create() {
         return new WsPackage();
     }
 
+    /**
+     * Create a new WebSocketPackage object with the given resource and action.
+     *
+     * @param resource of the package
+     * @param action of the package
+     * @return new WebSocketPackage object
+     */
     public static WsPackage create(Resource resource, Action action) {
         return new WsPackage(resource, action);
     }
 
+    /**
+     * Create a new WebSocketPackage object with the given resource, action and data.
+     *
+     * @param resource of the package
+     * @param action of the package
+     * @param data for the package
+     * @return new WebSocketPackage object
+     */
     public static WsPackage create(Resource resource, Action action, JsonObject data) {
         return new WsPackage(resource, action, data);
     }
