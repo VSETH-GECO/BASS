@@ -218,7 +218,10 @@ public class UserManager {
                 insertStatement.executeUpdate();
 
                 if (webSocket != null) {
-                    WsPackage.create().resource(Resource.USER).action(Action.ADD).send(webSocket);
+                    JsonObject data = new JsonObject();
+                    data.addProperty("action", Action.ADD.toString());
+                    data.addProperty("message", "User created");
+                    WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).data(data).send(webSocket);
                 }
             } else {
                 // Name already taken
@@ -304,8 +307,10 @@ public class UserManager {
             sessionDelete.setInt(1, userID);
             sessionDelete.executeUpdate();
 
-
-            WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).send(webSocket);
+            JsonObject data = new JsonObject();
+            data.addProperty("action", Action.DELETE.toString());
+            data.addProperty("message", "User deleted");
+            WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).data(data).send(webSocket);
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }

@@ -272,18 +272,18 @@ public class Server extends AuthWebSocketServer {
 
             case UPDATE:
 
-                if (data.get("userID") != null && ws.isAuthorized()) {
+                if (data.get("userID") != null && ws.isAuthorized() && ws.getUser().isAdmin()) {
                     int updatedRows = 0;
                     int userID = data.get("userID").getAsInt();
 
-                    if (data.get("password") != null && (ws.getUser().getUserID() == userID || ws.getUser().isAdmin()))
-                        updatedRows += UserManager.setPassword(ws, data.get("userID").getAsInt(), data.get("password").getAsString());
+                    if (data.get("password") != null && ws.getUser().isAdmin())
+                        updatedRows += UserManager.setPassword(ws, userID, data.get("password").getAsString());
 
                     if (data.get("admin") != null && ws.getUser().isAdmin())
-                        updatedRows += UserManager.setAdmin(ws, data.get("userID").getAsInt(), data.get("admin").getAsBoolean());
+                        updatedRows += UserManager.setAdmin(ws, userID, data.get("admin").getAsBoolean());
 
                     if (data.get("name") != null && ws.getUser().isAdmin())
-                        updatedRows += UserManager.setUsername(ws, data.get("userID").getAsInt(), data.get("name").getAsString());
+                        updatedRows += UserManager.setUsername(ws, userID, data.get("name").getAsString());
 
                     if (updatedRows == 0) {
                         responseData = new JsonObject();
@@ -293,6 +293,17 @@ public class Server extends AuthWebSocketServer {
                         Type listType = new TypeToken<List<User>>(){}.getType();
                         JsonArray userList = (JsonArray) Main.GSON.toJsonTree(UserManager.getUsers(), listType);
                         WsPackage.create().resource(Resource.USER).action(Action.INFORM).data(userList).send(ws);
+                    }
+                } else if (ws.isAuthorized()) {
+                    int updatedRows = 0;
+
+                    if (data.get("password") != null)
+                        updatedRows = UserManager.setPassword(ws, ws.getUser().getUserID(), data.get("password").getAsString());
+
+                    if (updatedRows != 0) {
+                        responseData.addProperty("action", Action.UPDATE.toString());
+                        responseData.addProperty("message", "Password changed");
+                        WsPackage.create(Resource.USER, Action.SUCCESS, responseData).send(ws);
                     }
                 }
 
