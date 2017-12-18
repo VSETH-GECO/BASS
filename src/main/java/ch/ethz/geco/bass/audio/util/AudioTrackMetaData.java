@@ -31,7 +31,9 @@ public class AudioTrackMetaData {
     /**
      * Creates a new meta data object with the given user and an empty vote map.
      *
+     * @param trackID id of the track
      * @param userID the user who added the track
+     * @param userName of the user who added the track
      */
     public AudioTrackMetaData(Integer trackID, Integer userID, String userName) {
         this.trackID = trackID;

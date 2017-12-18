@@ -45,6 +45,11 @@ public class Server extends AuthWebSocketServer {
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
+    /**
+     * Initialises a new WebSocketServer
+     *
+     * @param port the server listens on
+     */
     public Server(int port) {
         super(new InetSocketAddress(port));
     }
@@ -368,6 +373,10 @@ public class Server extends AuthWebSocketServer {
                 .send(webSocket);
     }
 
+    /**
+     * Informs all connected clients about the imminent shutdown of the server
+     * and stops the internal socket to free the port.
+     */
     public void stopSocket() {
         // Inform connections about stopping the playback
         WsPackage.create(Resource.PLAYER, Action.DATA).addData("state", "stopped").broadcast();
@@ -380,6 +389,11 @@ public class Server extends AuthWebSocketServer {
         }
     }
 
+    /**
+     * Broadcasts the given JsonObject to all connected clients
+     *
+     * @param jo the object to be broadcasted
+     */
     public void broadcast(JsonObject jo) {
         broadcast(jo.toString());
     }

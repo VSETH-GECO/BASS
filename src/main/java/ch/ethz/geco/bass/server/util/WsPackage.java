@@ -9,6 +9,9 @@ import com.google.gson.JsonObject;
 import com.sun.istack.internal.NotNull;
 import jdk.internal.jline.internal.Nullable;
 
+/**
+ * Streamlines the process to send a package over the websocket to one or multiple clients.
+ */
 public class WsPackage {
     private Resource resource;
     private Action action;
@@ -49,6 +52,7 @@ public class WsPackage {
     }
 
     private WsPackage() {}
+
     private WsPackage(Resource resource, Action action) {
         this.resource = resource;
         this.action = action;
@@ -149,6 +153,14 @@ public class WsPackage {
         return this;
     }
 
+
+    /**
+     * Add a element to the data of the package
+     *
+     * @param property the name of the property
+     * @param value    of the property
+     * @return this object for chaining
+     */
     @Nullable
     public WsPackage addDataElement(String property, JsonElement value) {
         if (dynamicData == null) {

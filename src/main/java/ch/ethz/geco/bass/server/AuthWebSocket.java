@@ -11,6 +11,7 @@ import java.util.List;
  * This web socket extends the default web socket by authorization checking.
  * It saves the user who uses this web socket and if the user is authorized (logged in).
  */
+@SuppressWarnings("JavaDoc")
 public class AuthWebSocket extends WebSocketImpl {
     /**
      * The user who uses this web socket.

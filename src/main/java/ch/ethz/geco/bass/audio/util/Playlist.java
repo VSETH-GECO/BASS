@@ -31,6 +31,7 @@ public class Playlist {
      * Adds a track to the playlist if the track is not already in it.
      *
      * @param track the track to add
+     * @param resort if the playlist should be resorted after the insertion (useful for multiple insertions)
      * @return true on success, false if the track is already in the playlist
      */
     public boolean add(AudioTrack track, boolean resort) {

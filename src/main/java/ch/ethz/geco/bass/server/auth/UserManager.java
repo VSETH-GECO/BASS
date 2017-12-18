@@ -183,6 +183,7 @@ public class UserManager {
      * Tries to log out the given web socket.
      *
      * @param webSocket the web socket which wants to log out
+     * @param token that should be deleted
      */
     public static void logout(AuthWebSocket webSocket, String token) {
         try {
@@ -243,6 +244,7 @@ public class UserManager {
      * @param webSocket the web socket that wants to update a user
      * @param userID of the user to be update
      * @param isAdmin value that should be set
+     * @return 1 if the change was successful, 0 if that user wasn't found and -1 on database errors
      */
     public static int setAdmin(AuthWebSocket webSocket, int userID, boolean isAdmin) {
         // TODO add direct update of the connection with the updated user if one exists.
@@ -251,7 +253,7 @@ public class UserManager {
             PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Admin = ? WHERE ID = ?");
             updateStatement.setInt(1, isAdmin ? 1 : 0); // Because SQLite does not support booleans apparently
             updateStatement.setInt(2, userID);
-            return updateStatement.executeUpdate();
+            return updateStatement.executeUpdate() > 0 ? 1 : 0;
 
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);

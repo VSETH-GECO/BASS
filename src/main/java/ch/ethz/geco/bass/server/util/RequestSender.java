@@ -15,6 +15,9 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import java.lang.reflect.Type;
 import java.util.List;
 
+/**
+ * Sends various packages with information to the clients
+ */
 public class RequestSender {
     private static final Type playlistType = new TypeToken<List<AudioTrack>>() {
     }.getType();
@@ -56,7 +59,8 @@ public class RequestSender {
     /**
      * Sends an error to the given web socket.
      *
-     * @param ws   the web socket to send to
+     * @param ws the web socket to send to
+     * @param resource the resource the error comes from
      * @param data the data to send
      */
     public static void sendError(AuthWebSocket ws, Resource resource, JsonObject data) {

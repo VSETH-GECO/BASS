@@ -14,9 +14,19 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
 import java.util.List;
 
+/**
+ * Implementation for the AudioLoadResultHandler
+ * <p>
+ * Takes care of what happens after a track has been loaded. Informing users and adding information to the tracks.
+ */
 public class BASSAudioResultHandler implements AudioLoadResultHandler {
     private AuthWebSocket webSocket;
 
+    /**
+     * Initialises the result handler
+     *
+     * @param webSocket the web socket to respond to
+     */
     public BASSAudioResultHandler(AuthWebSocket webSocket) {
         this.webSocket = webSocket;
     }
