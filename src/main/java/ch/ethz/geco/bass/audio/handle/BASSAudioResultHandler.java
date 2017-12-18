@@ -31,7 +31,7 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         AudioManager.getScheduler().queue(audioTrack, true);
 
         // Reply to user
-        WsPackage.create().resource(Server.Resource.QUEUE).action(Server.Action.SUCCESS).send(webSocket);
+        WsPackage.create(Server.Resource.QUEUE, Server.Action.SUCCESS).send(webSocket);
     }
 
     @Override
@@ -64,6 +64,6 @@ public class BASSAudioResultHandler implements AudioLoadResultHandler {
         AudioManager.getScheduler().getPlaylist().resort();
 
         // Reply to user
-        WsPackage.create().resource(Server.Resource.QUEUE).action(Server.Action.SUCCESS).send(webSocket);
+        WsPackage.create(Server.Resource.QUEUE, Server.Action.SUCCESS).send(webSocket);
     }
 }

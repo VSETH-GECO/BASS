@@ -117,7 +117,7 @@ public class UserManager {
                     // Remove vote expiry
                     VoteHandler.removeExpiry(userID);
 
-                    RequestSender.sendUserToken(webSocket, token, userName, userID, isAdmin);
+                    RequestSender.sendUserInfo(webSocket, token, userName, userID, isAdmin);
                 } else {
                     // Wrong password
                     JsonObject data = new JsonObject();
@@ -165,7 +165,7 @@ public class UserManager {
                     // Remove vote expiry
                     VoteHandler.removeExpiry(userID);
 
-                    RequestSender.sendUserToken(webSocket, token, userName, userID, isAdmin);
+                    RequestSender.sendUserInfo(webSocket, token, userName, userID, isAdmin);
                 } else {
                     ErrorHandler.handleLocal(new IllegalStateException("Found session associated to non-existing user."));
                 }
@@ -189,7 +189,7 @@ public class UserManager {
             deleteSessionToken(token);
             webSocket.logout();
 
-            WsPackage.create().resource(Resource.USER).action(Action.LOGOUT).send(webSocket);
+            WsPackage.create(Resource.USER, Action.LOGOUT).send(webSocket);
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }
@@ -218,10 +218,9 @@ public class UserManager {
                 insertStatement.executeUpdate();
 
                 if (webSocket != null) {
-                    JsonObject data = new JsonObject();
-                    data.addProperty("action", Action.ADD.toString());
-                    data.addProperty("message", "User created");
-                    WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).data(data).send(webSocket);
+                    WsPackage.create(Resource.USER, Action.SUCCESS)
+                            .addData("action", Action.ADD.toString())
+                            .addData("message", "User created").send(webSocket);
                 }
             } else {
                 // Name already taken
@@ -307,10 +306,9 @@ public class UserManager {
             sessionDelete.setInt(1, userID);
             sessionDelete.executeUpdate();
 
-            JsonObject data = new JsonObject();
-            data.addProperty("action", Action.DELETE.toString());
-            data.addProperty("message", "User deleted");
-            WsPackage.create().resource(Resource.USER).action(Action.SUCCESS).data(data).send(webSocket);
+            WsPackage.create(Resource.USER, Action.SUCCESS)
+                    .addData("action", Action.DELETE.toString())
+                    .addData("message", "User deleted").send(webSocket);
         } catch (SQLException e) {
             RequestSender.handleInternalError(webSocket, e);
         }

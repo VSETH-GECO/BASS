@@ -53,9 +53,7 @@ public class Server extends AuthWebSocketServer {
     public void onOpen(AuthWebSocket webSocket, ClientHandshake clientHandshake) {
         logger.info(clientHandshake.getFieldValue(webSocket.getRemoteSocketAddress().getHostString() + " connected!"));
 
-        JsonObject responseData = new JsonObject();
-        responseData.addProperty("apiVersion", API_VERSION);
-        WsPackage.create().resource(Resource.APP).action(Action.SUCCESS).data(responseData).send(webSocket);
+        WsPackage.create(Resource.APP, Action.SUCCESS).addData("apiVersion", API_VERSION).send(webSocket);
     }
 
     @Override
@@ -140,13 +138,10 @@ public class Server extends AuthWebSocketServer {
     }
 
     private void handleApp(AuthWebSocket webSocket, Action action, JsonObject data) {
-        JsonObject responseData = new JsonObject();
 
         switch (action) {
             case INFORM:
-                responseData.addProperty("action", action.toString());
-
-                WsPackage.create().resource(Resource.APP).action(Action.SUCCESS).data(responseData).send(webSocket);
+                WsPackage.create(Resource.APP, Action.SUCCESS).addData("action", action.toString()).send(webSocket);
                 break;
 
             case UPDATE:
@@ -156,8 +151,7 @@ public class Server extends AuthWebSocketServer {
                     FileOutputStream outStream;
                     try {
                         // Update on progress
-                        responseData.addProperty("status", "Downloading new jar...");
-                        WsPackage.create().resource(Resource.APP).action(Action.UPDATE).data(responseData).send(webSocket);
+                        WsPackage.create(Resource.APP, Action.UPDATE).addData("status", "Downloading new jar...").send(webSocket);
 
                         // Download stuff
                         URL fileUrlObj=new URL("https://jenkins.stammgruppe.eu/job/BASS/job/" + branch + "/lastSuccessfulBuild/artifact/target/BASS-shaded.jar");
@@ -173,9 +167,7 @@ public class Server extends AuthWebSocketServer {
                         outStream.close();
 
                         // Update on restart
-                        responseData = new JsonObject();
-                        responseData.addProperty("status", "Download finished, restarting...");
-                        WsPackage.create().resource(Resource.APP).action(Action.UPDATE).data(responseData).send(webSocket);
+                        WsPackage.create(Resource.APP, Action.UPDATE).addData("status", "Download finished, restarting...").send(webSocket);
 
                         this.stopSocket();
                         System.exit(8);
@@ -187,7 +179,6 @@ public class Server extends AuthWebSocketServer {
     }
 
     private void handlePlayer(AuthWebSocket ws, Action action, JsonObject data) {
-        JsonObject responseData = new JsonObject();
 
         switch (action) {
             case GET:
@@ -200,8 +191,7 @@ public class Server extends AuthWebSocketServer {
                         data.get("state").getAsString().equals("pause")
                 );
 
-                responseData.addProperty("action", action.toString());
-                WsPackage.create().resource(Resource.PLAYER).action(Action.SUCCESS).data(responseData).send(ws);
+                WsPackage.create(Resource.PLAYER, Action.SUCCESS).addData("action", action.toString()).send(ws);
                 break;
         }
     }
@@ -212,7 +202,7 @@ public class Server extends AuthWebSocketServer {
                 Type listType = new TypeToken<List<AudioTrack>>(){}.getType();
                 JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), listType);
 
-                WsPackage.create().resource(Resource.QUEUE).action(Action.DATA).data(trackList).send(ws);
+                WsPackage.create(Resource.QUEUE, Action.DATA).data(trackList).send(ws);
                 break;
 
             case ADD:
@@ -228,7 +218,6 @@ public class Server extends AuthWebSocketServer {
     }
 
     private void handleUser(AuthWebSocket ws, Action action, JsonObject data) {
-        JsonObject responseData = new JsonObject();
         Resource resource = Resource.USER;
 
         switch (action) {
@@ -286,13 +275,11 @@ public class Server extends AuthWebSocketServer {
                         updatedRows += UserManager.setUsername(ws, userID, data.get("name").getAsString());
 
                     if (updatedRows == 0) {
-                        responseData = new JsonObject();
-                        responseData.addProperty("message", "User with that ID was not found. Nothing changed.");
-                        RequestSender.sendError(ws, Resource.USER, responseData);
+                        WsPackage.create(Resource.USER, Action.ERROR).addData("message", "User with that ID was not found. Nothing changed.").send(ws);
                     } else {
                         Type listType = new TypeToken<List<User>>(){}.getType();
                         JsonArray userList = (JsonArray) Main.GSON.toJsonTree(UserManager.getUsers(), listType);
-                        WsPackage.create().resource(Resource.USER).action(Action.INFORM).data(userList).send(ws);
+                        WsPackage.create(Resource.USER, Action.INFORM).data(userList).send(ws);
                     }
                 } else if (ws.isAuthorized()) {
                     int updatedRows = 0;
@@ -301,9 +288,9 @@ public class Server extends AuthWebSocketServer {
                         updatedRows = UserManager.setPassword(ws, ws.getUser().getUserID(), data.get("password").getAsString());
 
                     if (updatedRows != 0) {
-                        responseData.addProperty("action", Action.UPDATE.toString());
-                        responseData.addProperty("message", "Password changed");
-                        WsPackage.create(Resource.USER, Action.SUCCESS, responseData).send(ws);
+                        WsPackage.create(Resource.USER, Action.SUCCESS)
+                                .addData("action", Action.UPDATE.toString())
+                                .addData("message", "Password changed").send(ws);
                     }
                 }
 
@@ -317,12 +304,11 @@ public class Server extends AuthWebSocketServer {
 
                 Type listType = new TypeToken<List<User>>(){}.getType();
                 JsonArray userList = (JsonArray) Main.GSON.toJsonTree(UserManager.getUsers(), listType);
-                WsPackage.create().resource(Resource.USER).action(Action.INFORM).data(userList).send(ws);
+                WsPackage.create(Resource.USER, Action.INFORM).data(userList).send(ws);
         }
     }
 
     private void handleFavorites(AuthWebSocket ws, Action action, JsonObject data) {
-        JsonObject responseData = new JsonObject();
         Type listType = new TypeToken<List<FavoriteTrack>>(){}.getType();
         JsonArray ele;
 
@@ -334,27 +320,25 @@ public class Server extends AuthWebSocketServer {
         switch (action) {
             case GET:
                 ele = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(ws.getUser().getUserID()), listType);
-                WsPackage.create().resource(Resource.FAVORITES).action(Action.DATA).data(ele).send(ws);
+                WsPackage.create(Resource.FAVORITES, Action.DATA).data(ele).send(ws);
                 break;
 
             case ADD:
                 UserManager.addFavorite(ws.getUser().getUserID(), data.get("uri").getAsString(), data.get("title").getAsString());
 
-                responseData.addProperty("action", action.toString());
-                WsPackage.create().resource(Resource.FAVORITES).action(Action.SUCCESS).data(responseData).send(ws);
+                WsPackage.create(Resource.FAVORITES, Action.SUCCESS).addData("action", action.toString()).send(ws);
 
                 ele = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(ws.getUser().getUserID()), listType);
-                WsPackage.create().resource(Resource.FAVORITES).action(Action.DATA).data(ele).send(ws);
+                WsPackage.create(Resource.FAVORITES, Action.DATA).data(ele).send(ws);
                 break;
 
             case DELETE:
                 UserManager.removeFavorite(ws.getUser().getUserID(), data.get("uri").getAsString());
 
-                responseData.addProperty("action", action.toString());
-                WsPackage.create().resource(Resource.FAVORITES).action(Action.SUCCESS).data(responseData).send(ws);
+                WsPackage.create(Resource.FAVORITES, Action.SUCCESS).addData("action", action.toString()).send(ws);
 
                 ele = (JsonArray) Main.GSON.toJsonTree(UserManager.getFavorites(ws.getUser().getUserID()), listType);
-                WsPackage.create().resource(Resource.FAVORITES).action(Action.DATA).data(ele).send(ws);
+                WsPackage.create(Resource.FAVORITES, Action.DATA).data(ele).send(ws);
                 break;
 
         }
@@ -376,20 +360,16 @@ public class Server extends AuthWebSocketServer {
         }
     }
 
-    // TODO add to error handler
     private void handleUnauthorized(AuthWebSocket webSocket, Resource resource, Action action) {
-        JsonObject data = new JsonObject();
-        data.addProperty("action", action.toString());
-        data.addProperty("message", "Your connection is unauthorized. Log in or upgrade to admin for only 9.99 to perform this action.");
-
-        WsPackage.create().resource(resource).action(Action.ERROR).data(data).send(webSocket);
+        WsPackage.create(resource, Action.ERROR)
+                .addData("action", action.toString())
+                .addData("message", "Your connection is unauthorized. Log in or upgrade to admin for only 9.99 to perform this action.")
+                .send(webSocket);
     }
 
     public void stopSocket() {
         // Inform connections about stopping the playback
-        JsonObject data = new JsonObject();
-        data.addProperty("state", "stopped");
-        WsPackage.create().resource(Resource.PLAYER).action(Action.DATA).data(data).broadcast();
+        WsPackage.create(Resource.PLAYER, Action.DATA).addData("state", "stopped").broadcast();
 
         // Shutdown socket to free port
         try {

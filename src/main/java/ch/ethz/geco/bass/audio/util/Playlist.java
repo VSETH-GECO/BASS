@@ -3,7 +3,6 @@ package ch.ethz.geco.bass.audio.util;
 import ch.ethz.geco.bass.server.Server;
 import ch.ethz.geco.bass.server.util.RequestSender;
 import ch.ethz.geco.bass.server.util.WsPackage;
-import com.google.gson.JsonObject;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
 import java.util.*;
@@ -60,11 +59,9 @@ public class Playlist {
         synchronized (this) {
             if (sortedPlaylist.isEmpty()) {
                 // Broadcast to users
-                JsonObject data = new JsonObject();
-
-                data.addProperty("state", "stopped");
-                data.add("track", null);
-                WsPackage.create().resource(Server.Resource.PLAYER).action(Server.Action.DATA).data(data).broadcast();
+                WsPackage.create(Server.Resource.PLAYER, Server.Action.DATA)
+                        .addData("state", "stopped")
+                        .addDataElement("track", null).broadcast();
 
                 return null;
             }
