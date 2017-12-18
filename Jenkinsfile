@@ -25,7 +25,6 @@ node {
             }
         }
 
-
         stage('Push Docker Image') {
             // Make sure we are logged in to our repository
             withCredentials([usernamePassword(credentialsId: 'docker-stammgruppe', usernameVariable: 'USER', passwordVariable: 'PW')]) {
