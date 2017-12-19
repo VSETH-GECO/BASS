@@ -308,6 +308,10 @@ public class UserManager {
             sessionDelete.setInt(1, userID);
             sessionDelete.executeUpdate();
 
+            PreparedStatement favoritesDelete = con.prepareStatement("DELETE FROM Favorites WHERE UserID = ?");
+            favoritesDelete.setInt(1, userID);
+            favoritesDelete.executeUpdate();
+
             WsPackage.create(Resource.USER, Action.SUCCESS)
                     .addData("action", Action.DELETE.toString())
                     .addData("message", "User deleted").send(webSocket);
