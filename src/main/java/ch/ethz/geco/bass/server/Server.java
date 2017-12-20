@@ -32,6 +32,7 @@ import java.util.List;
  */
 public class Server extends AuthWebSocketServer {
     private static final String API_VERSION = "v2";
+    private boolean partyMode = false;
     public enum Resource {APP, PLAYER, QUEUE, USER, FAVORITES, TRACK}
 
     public enum Action {
@@ -58,7 +59,9 @@ public class Server extends AuthWebSocketServer {
     public void onOpen(AuthWebSocket webSocket, ClientHandshake clientHandshake) {
         logger.info(clientHandshake.getFieldValue(webSocket.getRemoteSocketAddress().getHostString() + " connected!"));
 
-        WsPackage.create(Resource.APP, Action.SUCCESS).addData("apiVersion", API_VERSION).send(webSocket);
+        WsPackage.create(Resource.APP, Action.SUCCESS)
+                .addData("apiVersion", API_VERSION)
+                .addData("partyMode", partyMode).send(webSocket);
     }
 
     @Override
@@ -72,7 +75,6 @@ public class Server extends AuthWebSocketServer {
 
             if (webSocket.getUser() != null) {
                 VoteHandler.scheduleExpiry(webSocket.getUser().getUserID());
-                VoteHandler.recheckPlaylist();
             }
         } else {
             logger.warn("Websocket was null on disconnect!");
@@ -91,7 +93,7 @@ public class Server extends AuthWebSocketServer {
 
     @Override
     public void onMessage(AuthWebSocket ws, String msg) {
-        if (msg.toLowerCase().contains("password"))
+        if (msg.toLowerCase().contains("password") || msg.toLowerCase().contains("token"))
             logger.debug("Redacted message from (" + ws.getRemoteSocketAddress().getHostString() + ")");
         else
             logger.debug("Message from (" + ws.getRemoteSocketAddress().getHostString() + "): " + msg);
@@ -143,21 +145,21 @@ public class Server extends AuthWebSocketServer {
         }
     }
 
-    private void handleApp(AuthWebSocket webSocket, Action action, JsonObject data) {
+    private void handleApp(AuthWebSocket ws, Action action, JsonObject data) {
 
         switch (action) {
             case INFORM:
-                WsPackage.create(Resource.APP, Action.SUCCESS).addData("action", action.toString()).send(webSocket);
+                WsPackage.create(Resource.APP, Action.SUCCESS).addData("action", action.toString()).send(ws);
                 break;
 
             case UPDATE:
-                if (webSocket.isAuthorized() && webSocket.getUser().isAdmin()) {
+                if (ws.isAuthorized() && ws.getUser().isAdmin()) {
                     String branch = data.get("branch").isJsonObject() ? data.getAsJsonObject("branch").getAsString() : "dev";
                     BufferedInputStream inStream;
                     FileOutputStream outStream;
                     try {
                         // Update on progress
-                        WsPackage.create(Resource.APP, Action.UPDATE).addData("status", "Downloading new jar...").send(webSocket);
+                        WsPackage.create(Resource.APP, Action.UPDATE).addData("status", "Downloading new jar...").send(ws);
 
                         // Download stuff
                         URL fileUrlObj=new URL("https://jenkins.stammgruppe.eu/job/BASS/job/" + branch + "/lastSuccessfulBuild/artifact/target/BASS-shaded.jar");
@@ -173,7 +175,7 @@ public class Server extends AuthWebSocketServer {
                         outStream.close();
 
                         // Update on restart
-                        WsPackage.create(Resource.APP, Action.UPDATE).addData("status", "Download finished, restarting...").send(webSocket);
+                        WsPackage.create(Resource.APP, Action.UPDATE).addData("status", "Download finished, restarting...").send(ws);
 
                         this.stopSocket();
                         System.exit(8);
@@ -181,6 +183,25 @@ public class Server extends AuthWebSocketServer {
                         ErrorHandler.handleLocal(e);
                     }
                 }
+                break;
+
+            case SET:
+                if (ws.isAuthorized() && ws.getUser().isAdmin()) {
+                    if (data.get("partyMode") != null) {
+                        partyMode = data.get("partyMode").getAsBoolean();
+                        WsPackage.create(Resource.APP, Action.SUCCESS).addData("action", action.toString()).send(ws);
+                    }
+                } else {
+                    WsPackage.create(Resource.APP, Action.ERROR)
+                            .addData("action", action.toString())
+                            .addData("message", "You need to be admin to perform this action.").send(ws);
+                }
+                break;
+
+            default:
+                WsPackage.create(Resource.APP, Action.ERROR)
+                        .addData("action", action.toString())
+                        .addData("message", "The requested action is not defined for this resource").send(ws);
         }
     }
 
@@ -199,6 +220,11 @@ public class Server extends AuthWebSocketServer {
 
                 WsPackage.create(Resource.PLAYER, Action.SUCCESS).addData("action", action.toString()).send(ws);
                 break;
+
+            default:
+                WsPackage.create(Resource.APP, Action.ERROR)
+                        .addData("action", action.toString())
+                        .addData("message", "The requested action is not defined for this resource").send(ws);
         }
     }
 
@@ -212,7 +238,7 @@ public class Server extends AuthWebSocketServer {
                 break;
 
             case ADD:
-                if (!ws.isAuthorized()) {
+                if (!ws.isAuthorized() && !partyMode) {
                     handleUnauthorized(ws, Resource.QUEUE, action);
                     return;
                 }
@@ -220,6 +246,11 @@ public class Server extends AuthWebSocketServer {
                 String uri = data.get("uri").getAsString();
                 AudioManager.loadAndPlay(uri, new BASSAudioResultHandler(ws));
                 break;
+
+            default:
+                WsPackage.create(Resource.APP, Action.ERROR)
+                        .addData("action", action.toString())
+                        .addData("message", "The requested action is not defined for this resource").send(ws);
         }
     }
 
@@ -311,6 +342,12 @@ public class Server extends AuthWebSocketServer {
                 Type listType = new TypeToken<List<User>>(){}.getType();
                 JsonArray userList = (JsonArray) Main.GSON.toJsonTree(UserManager.getUsers(), listType);
                 WsPackage.create(Resource.USER, Action.INFORM).data(userList).send(ws);
+                break;
+
+            default:
+                WsPackage.create(Resource.APP, Action.ERROR)
+                        .addData("action", action.toString())
+                        .addData("message", "The requested action is not defined for this resource").send(ws);
         }
     }
 
@@ -347,6 +384,11 @@ public class Server extends AuthWebSocketServer {
                 WsPackage.create(Resource.FAVORITES, Action.DATA).data(ele).send(ws);
                 break;
 
+            default:
+                WsPackage.create(Resource.APP, Action.ERROR)
+                        .addData("action", action.toString())
+                        .addData("message", "The requested action is not defined for this resource").send(ws);
+
         }
     }
 
@@ -363,6 +405,11 @@ public class Server extends AuthWebSocketServer {
 
                 VoteHandler.handle(ws, trackID, vote);
                 break;
+
+            default:
+                WsPackage.create(Resource.APP, Action.ERROR)
+                        .addData("action", action.toString())
+                        .addData("message", "The requested action is not defined for this resource").send(ws);
         }
     }
 
