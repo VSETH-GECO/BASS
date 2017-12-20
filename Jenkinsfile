@@ -21,6 +21,8 @@ node {
                     sh 'mvn -B test'
                 }
             }
+        } catch {
+            currentBuild.result = 'UNSTABLE'
         } finally {
             junit '**/target/surefire-reports/TEST-*.xml'
         }
