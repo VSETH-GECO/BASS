@@ -8,10 +8,22 @@ node {
 
         stage('Maven Build') {
             docker.image('maven:3-alpine').inside('-v /root/.m2:/root/.m2') {
-                sh 'mvn -B clean install'
+                sh 'mvn -B clean install -DskipTests'
             }
 
             archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+        }
+
+        try {
+            stage('Test') {
+                docker.image('maven:3-alpine').inside('-v /root/.m2:/root/.m2') {
+                    sh 'mvn -B test'
+                }
+            }
+        } catch (e) {
+            currentBuild.result = 'UNSTABLE'
+        } finally {
+            junit '**/target/surefire-reports/TEST-*.xml'
         }
 
         stage('Build Docker Image') {
