@@ -82,4 +82,10 @@ class WsPackageTest {
         verify(ws).send(ArgumentMatchers.eq(normalPackageWData));
         verifyNoMoreInteractions(ws);
     }
+
+    @Test
+    @DisplayName("Intentional test fail")
+    void testFail() {
+        assertEquals(true, false);
+    }
 }
