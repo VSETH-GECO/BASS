@@ -6,8 +6,6 @@ import ch.ethz.geco.bass.server.Server.Action;
 import ch.ethz.geco.bass.server.Server.Resource;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.sun.istack.internal.NotNull;
-import jdk.internal.jline.internal.Nullable;
 
 /**
  * Streamlines the process to send a package over the websocket to one or multiple clients.
@@ -107,7 +105,6 @@ public class WsPackage {
      * @param value    of the property
      * @return this object for chaining
      */
-    @NotNull
     public WsPackage addData(String property, String value) {
         if (dynamicData == null) {
             dynamicData = new JsonObject();
@@ -125,7 +122,6 @@ public class WsPackage {
      * @param value    of the property
      * @return this object for chaining
      */
-    @NotNull
     public WsPackage addData(String property, Number value) {
         if (dynamicData == null) {
             dynamicData = new JsonObject();
@@ -161,7 +157,6 @@ public class WsPackage {
      * @param value    of the property
      * @return this object for chaining
      */
-    @Nullable
     public WsPackage addDataElement(String property, JsonElement value) {
         if (dynamicData == null) {
             dynamicData = new JsonObject();
