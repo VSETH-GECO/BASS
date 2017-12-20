@@ -14,6 +14,12 @@ node {
             archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
         }
 
+        stage('Test') {
+            docker.image('maven:3-alpine').inside('-v /root/.m2:/root/.m2') {
+                sh 'mvn -B test'
+            }
+        }
+
         stage('Build Docker Image') {
             /* This builds the actual image; synonymous to
              * docker build on the command line */
@@ -38,6 +44,12 @@ node {
             docker.withRegistry('https://docker.stammgruppe.eu/v2/', 'docker-stammgruppe') {
                 image.push("${env.BUILD_NUMBER}")
                 image.push("latest")
+            }
+        }
+
+        post {
+            always {
+                junit '**/target/surefire-reports/TEST-*.xml'
             }
         }
     }
