@@ -27,6 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Responsible for saving all relevant data of the player
+ * state to restore after a restart/crash.
+ */
 public class PlayerStateKeeper {
     /**
      * The logger of this class
