@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,11 +43,10 @@ public class PlayerStateKeeper {
 
     static {
         try {
-            Connection con = SQLite.getConnection();
 
             if (!SQLite.tableExists("Players")) {
                 logger.debug("Player table does not exist, creating...");
-                PreparedStatement statement = con.prepareStatement("CREATE TABLE Players (ID INTEGER PRIMARY KEY, Paused INTEGER NOT NULL, TrackCount INTEGER NOT NULL, Track TEXT, Playlist TEXT);");
+                PreparedStatement statement = SQLite.getPreparedStatement(SQLite.Statements.CREATE_TABLE_PLAYER);
                 statement.execute();
                 logger.debug("Player table created!");
             } else {
@@ -67,8 +65,6 @@ public class PlayerStateKeeper {
      */
     public static void save(int ID) {
         try {
-            Connection con = SQLite.getConnection();
-
             AudioPlayer audioPlayer = AudioManager.getPlayer();
 
             JsonObject currentTrack;
@@ -82,7 +78,7 @@ public class PlayerStateKeeper {
             }.getType();
             JsonArray trackList = (JsonArray) Main.GSON.toJsonTree(AudioManager.getScheduler().getPlaylist().getSortedList(), playlistType);
 
-            PreparedStatement insertStatement = con.prepareStatement("INSERT OR REPLACE INTO Players VALUES (?,?,?,?,?);");
+            PreparedStatement insertStatement = SQLite.getPreparedStatement(SQLite.Statements.INSERT_OR_REPLACE_PLAYER);
             insertStatement.setInt(1, ID);
             insertStatement.setInt(2, audioPlayer.isPaused() ? 1 : 0);
             insertStatement.setInt(3, AudioManager.getScheduler().trackCount.get());
@@ -105,9 +101,7 @@ public class PlayerStateKeeper {
         try {
             logger.debug("Loading player state: " + ID);
 
-            Connection con = SQLite.getConnection();
-
-            PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Players WHERE ID = ?;");
+            PreparedStatement queryStatement = SQLite.getPreparedStatement(SQLite.Statements.GET_PLAYER_BY_ID);
             queryStatement.setInt(1, ID);
             ResultSet result = queryStatement.executeQuery();
 

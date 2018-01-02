@@ -14,7 +14,6 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,11 +31,9 @@ public class UserManager {
     // Check database integrity
     static {
         try {
-            Connection con = SQLite.getConnection();
-
             if (!SQLite.tableExists("Users")) {
                 logger.debug("User table does not exist, creating...");
-                PreparedStatement statement = con.prepareStatement("CREATE TABLE Users (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Password TEXT NOT NULL, Admin INTEGER NOT NULL);");
+                PreparedStatement statement = SQLite.getPreparedStatement(SQLite.Statements.CREATE_TABLE_USERS);
                 statement.execute();
                 logger.debug("User table created!");
 
@@ -49,7 +46,7 @@ public class UserManager {
 
             if (!SQLite.tableExists("Sessions")) {
                 logger.debug("Sessions table does not exist, creating...");
-                PreparedStatement statement = con.prepareStatement("CREATE TABLE Sessions (UserID INTEGER NOT NULL, Token TEXT NOT NULL, Valid DATETIME NOT NULL, FOREIGN KEY(UserID) REFERENCES Users(ID));");
+                PreparedStatement statement = SQLite.getPreparedStatement(SQLite.Statements.CREATE_TABLE_SESSIONS);
                 statement.execute();
                 logger.debug("Sessions table created!");
             } else {
@@ -58,7 +55,7 @@ public class UserManager {
 
             if (!SQLite.tableExists("Favorites")) {
                 logger.debug("Favorites table does not exist, creating...");
-                PreparedStatement statement = con.prepareStatement("CREATE TABLE Favorites (UserID INTEGER NOT NULL, Uri TEXT NOT NULL, Title Text NOT NULL, FOREIGN KEY(UserID) REFERENCES Users(ID));");
+                PreparedStatement statement = SQLite.getPreparedStatement(SQLite.Statements.CREATE_TABLE_FAVORITES);
                 statement.execute();
                 logger.debug("Favorites table created!");
             } else {
@@ -90,10 +87,8 @@ public class UserManager {
      */
     public static void login(AuthWebSocket webSocket, String userName, String password) {
         try {
-            Connection con = SQLite.getConnection();
-
             // Get hashed password
-            PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Users WHERE Name = ?;");
+            PreparedStatement queryStatement = SQLite.getPreparedStatement(SQLite.Statements.GET_USER_BY_NAME);
             queryStatement.setString(1, userName);
             ResultSet queryResult = queryStatement.executeQuery();
 
@@ -106,7 +101,8 @@ public class UserManager {
                     boolean isAdmin = queryResult.getBoolean("Admin");
 
                     // Add a new session token to the database which is valid for one day
-                    PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Sessions VALUES (?,?, datetime('now', '+1 day'));");
+                    //  PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Sessions VALUES (?,?, datetime('now', '+1 day'));");
+                    PreparedStatement insertStatement = SQLite.getPreparedStatement(SQLite.Statements.INSERT_NEW_SESSION);
                     insertStatement.setInt(1, userID);
                     insertStatement.setString(2, token);
                     insertStatement.executeUpdate();
@@ -143,14 +139,13 @@ public class UserManager {
      */
     public static void login(AuthWebSocket webSocket, String token) {
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement sessionQuery = con.prepareStatement("SELECT UserID FROM Sessions WHERE Token = ?;");
+            PreparedStatement sessionQuery = SQLite.getPreparedStatement(SQLite.Statements.GET_USER_ID_BY_SESSION_TOKEN);
             sessionQuery.setString(1, token);
             ResultSet sessionResult = sessionQuery.executeQuery();
 
             if (sessionResult.next()) {
                 int userID = sessionResult.getInt("UserID");
-                PreparedStatement userQuery = con.prepareStatement("SELECT Name, Admin FROM Users WHERE ID = ?;");
+                PreparedStatement userQuery = SQLite.getPreparedStatement(SQLite.Statements.GET_USER_BY_ID);
                 userQuery.setInt(1, userID);
                 ResultSet userResult = userQuery.executeQuery();
 
@@ -206,14 +201,14 @@ public class UserManager {
      */
     public static void register(AuthWebSocket webSocket, String userName, String password) {
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Users WHERE Name = ?;");
+            PreparedStatement queryStatement = SQLite.getPreparedStatement(SQLite.Statements.GET_USER_BY_NAME);
+            // PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Users WHERE Name = ?;");
             queryStatement.setString(1, userName);
             ResultSet result = queryStatement.executeQuery();
 
             // Check if there is already a user with that name
             if (!result.next()) {
-                PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Users (Name, Password, Admin) VALUES (?, ?, 0);");
+                PreparedStatement insertStatement = SQLite.getPreparedStatement(SQLite.Statements.INSERT_NEW_USER);
                 insertStatement.setString(1, userName);
                 insertStatement.setString(2, BCrypt.hashpw(password, BCrypt.gensalt()));
                 insertStatement.executeUpdate();
@@ -249,8 +244,7 @@ public class UserManager {
     public static int setAdmin(AuthWebSocket webSocket, int userID, boolean isAdmin) {
         // TODO add direct update of the connection with the updated user if one exists.
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Admin = ? WHERE ID = ?");
+            PreparedStatement updateStatement = SQLite.getPreparedStatement(SQLite.Statements.UPDATE_ADMIN_BY_ID);
             updateStatement.setInt(1, isAdmin ? 1 : 0); // Because SQLite does not support booleans apparently
             updateStatement.setInt(2, userID);
             return updateStatement.executeUpdate() > 0 ? 1 : 0;
@@ -270,9 +264,8 @@ public class UserManager {
     public static List<User> getUsers() {
         try {
             List<User> users = new ArrayList<>();
-            Connection con = SQLite.getConnection();
 
-            PreparedStatement queryStatement = con.prepareStatement("SELECT * FROM Users ;");
+            PreparedStatement queryStatement = SQLite.getPreparedStatement(SQLite.Statements.GET_ALL_USERS);
             ResultSet queryResult = queryStatement.executeQuery();
 
             while (queryResult.next()) {
@@ -299,16 +292,15 @@ public class UserManager {
      */
     public static void delete(AuthWebSocket webSocket, int userID) {
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement userDelete = con.prepareStatement("DELETE FROM Users WHERE ID = ?;");
+            PreparedStatement userDelete = SQLite.getPreparedStatement(SQLite.Statements.DELETE_USER_BY_ID);
             userDelete.setInt(1, userID);
             userDelete.executeUpdate();
 
-            PreparedStatement sessionDelete = con.prepareStatement("DELETE FROM Sessions WHERE UserID = ?;");
+            PreparedStatement sessionDelete = SQLite.getPreparedStatement(SQLite.Statements.DELETE_SESSION_BY_ID);
             sessionDelete.setInt(1, userID);
             sessionDelete.executeUpdate();
 
-            PreparedStatement favoritesDelete = con.prepareStatement("DELETE FROM Favorites WHERE UserID = ?");
+            PreparedStatement favoritesDelete = SQLite.getPreparedStatement(SQLite.Statements.DELETE_FAVORITES_BY_USER_ID);
             favoritesDelete.setInt(1, userID);
             favoritesDelete.executeUpdate();
 
@@ -331,8 +323,7 @@ public class UserManager {
     public static int setUsername(AuthWebSocket webSocket, int userID, String name) {
         // TODO add direct update of the connection with the updated user if one exists.
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Name = ? WHERE ID = ?");
+            PreparedStatement updateStatement = SQLite.getPreparedStatement(SQLite.Statements.UPDATE_USER_NAME_BY_ID);
             updateStatement.setString(1, name);
             updateStatement.setInt(2, userID);
             return updateStatement.executeUpdate() > 0 ? 1 : 0;
@@ -354,8 +345,7 @@ public class UserManager {
     public static int setPassword(AuthWebSocket webSocket, int userID, String password) {
         // TODO add direct update of the connection with the updated user if one exists.
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement updateStatement = con.prepareStatement("UPDATE Users SET Password = ? WHERE ID = ?");
+            PreparedStatement updateStatement = SQLite.getPreparedStatement(SQLite.Statements.UPDATE_PASSWORD_BY_ID);
             updateStatement.setString(1, BCrypt.hashpw(password, BCrypt.gensalt()));
             updateStatement.setInt(2, userID);
             return updateStatement.executeUpdate() > 0 ? 1 : 0;
@@ -372,8 +362,7 @@ public class UserManager {
      * @param token the token to delete
      */
     private static void deleteSessionToken(String token) throws SQLException {
-        Connection con = SQLite.getConnection();
-        PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Sessions WHERE Token = ?;");
+        PreparedStatement deleteStatement = SQLite.getPreparedStatement(SQLite.Statements.DELETE_SESSION_BY_TOKEN);
         deleteStatement.setString(1, token);
         deleteStatement.executeUpdate();
     }
@@ -385,8 +374,7 @@ public class UserManager {
      * @throws SQLException on sql exception
      */
     private static void refreshToken(String token) throws SQLException {
-        Connection con = SQLite.getConnection();
-        PreparedStatement refreshStatement = con.prepareStatement("UPDATE Sessions SET Valid = datetime('now', '+1 day') WHERE Token = ?;");
+        PreparedStatement refreshStatement = SQLite.getPreparedStatement(SQLite.Statements.UPDATE_SESSION_VALIDITY_BY_TOKEN);
         refreshStatement.setString(1, token);
         refreshStatement.executeUpdate();
     }
@@ -396,8 +384,7 @@ public class UserManager {
      */
     private static void deleteExpiredSessions() {
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Sessions WHERE Valid < datetime('now');");
+            PreparedStatement deleteStatement = SQLite.getPreparedStatement(SQLite.Statements.DELETE_SESSION_BY_VALIDITY);
             int removedSessions = deleteStatement.executeUpdate();
 
             if (removedSessions > 0) {
@@ -418,8 +405,7 @@ public class UserManager {
         ArrayList <FavoriteTrack> favorites = new ArrayList<>();
 
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement queryStatement = con.prepareStatement("SELECT Uri, Title FROM Favorites WHERE UserID = ?");
+            PreparedStatement queryStatement = SQLite.getPreparedStatement(SQLite.Statements.GET_FAVORITES_BY_USER_ID);
             queryStatement.setInt(1, userID);
             ResultSet results = queryStatement.executeQuery();
 
@@ -446,8 +432,7 @@ public class UserManager {
                 return;
             }
 
-            Connection con = SQLite.getConnection();
-            PreparedStatement insertStatement = con.prepareStatement("INSERT INTO Favorites VALUES (?, ?, ?)");
+            PreparedStatement insertStatement = SQLite.getPreparedStatement(SQLite.Statements.INSERT_NEW_FAVORITE);
             insertStatement.setInt(1, userID);
             insertStatement.setString(2, uri);
             insertStatement.setString(3, title);
@@ -467,8 +452,7 @@ public class UserManager {
      */
     public static boolean removeFavorite(int userID, String uri) {
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM Favorites WHERE UserID = ? AND Uri = ?");
+            PreparedStatement deleteStatement = SQLite.getPreparedStatement(SQLite.Statements.DELETE_FAVORITE_BY_USER_ID_AND_URI);
             deleteStatement.setInt(1, userID);
             deleteStatement.setString(2, uri);
 
@@ -491,8 +475,7 @@ public class UserManager {
      */
     private static boolean hasFavorite(int userID, String uri) {
         try {
-            Connection con = SQLite.getConnection();
-            PreparedStatement queryStatement = con.prepareStatement("SELECT UserID FROM Favorites WHERE UserID = ? AND Uri = ?");
+            PreparedStatement queryStatement = SQLite.getPreparedStatement(SQLite.Statements.GET_FAVORITE_BY_USER_ID_AND_URI);
             queryStatement.setInt(1, userID);
             queryStatement.setString(2, uri);
 
