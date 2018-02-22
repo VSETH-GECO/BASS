@@ -153,7 +153,7 @@ public class Server extends AuthWebSocketServer {
                 break;
 
             case UPDATE:
-                if (ws.isAuthorized() && ws.getUser().isAdmin()) {
+                if (ws.isAdmin()) {
                     String branch = data.get("branch").isJsonObject() ? data.getAsJsonObject("branch").getAsString() : "dev";
                     BufferedInputStream inStream;
                     FileOutputStream outStream;
@@ -186,7 +186,7 @@ public class Server extends AuthWebSocketServer {
                 break;
 
             case SET:
-                if (ws.isAuthorized() && ws.getUser().isAdmin()) {
+                if (ws.isAdmin()) {
                     if (data.get("partyMode") != null) {
                         partyMode = data.get("partyMode").getAsBoolean();
                         WsPackage.create(Resource.APP, Action.SUCCESS).addData("action", action.toString()).send(ws);
@@ -298,7 +298,7 @@ public class Server extends AuthWebSocketServer {
 
             case UPDATE:
 
-                if (data.get("userID") != null && ws.isAuthorized() && ws.getUser().isAdmin()) {
+                if (data.get("userID") != null && ws.isAdmin()) {
                     int updatedRows = 0;
                     int userID = data.get("userID").getAsInt();
 

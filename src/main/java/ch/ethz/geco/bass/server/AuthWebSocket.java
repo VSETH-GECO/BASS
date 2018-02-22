@@ -73,6 +73,17 @@ public class AuthWebSocket extends WebSocketImpl {
     }
 
     /**
+     * Returns whether or not this web socket is a admin. This means that the user using this web socket is currently logged in
+     * and has administrator rights.
+     *
+     * @return whether or not this web socket is a admin.
+     */
+    public boolean isAdmin() {
+        return isAuthorized && authorizedUser.isAdmin();
+
+    }
+
+    /**
      * Returns the user who uses this web socket. This can be null if the connection is anonymous (unauthorized).
      *
      * @return the user who uses this web socket
