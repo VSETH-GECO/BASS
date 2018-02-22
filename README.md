@@ -17,7 +17,7 @@ To start BASS, simply run:
 ```
 java -jar bass.jar
 ```
-Then you can connect to it via web socket on port `8445` using our [Web Interface](https://github.com/VSETH-GECO/BASSctrl)
+Then you can connect to it via web socket on port `8455` using our [Web Interface](https://github.com/VSETH-GECO/BASSctrl)
 or you can implement your own control interface using the [API](/API-Docs.md).
 
 ## Docker
