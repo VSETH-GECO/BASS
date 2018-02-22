@@ -430,7 +430,7 @@ public class Server extends AuthWebSocketServer {
 
         // Shutdown socket to free port
         try {
-            this.stop(100000);
+            this.stop(1000);
         } catch (InterruptedException e) {
             ErrorHandler.handleLocal(e);
         }
