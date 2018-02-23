@@ -19,12 +19,11 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 
 /**
@@ -161,8 +160,17 @@ public class Server extends AuthWebSocketServer {
                         // Update on progress
                         WsPackage.create(Resource.APP, Action.UPDATE).addData("status", "Downloading new jar...").send(ws);
 
-                        // Download stuff
+                        // Get URL
                         URL fileUrlObj=new URL("https://jenkins.stammgruppe.eu/job/BASS/job/" + branch + "/lastSuccessfulBuild/artifact/target/BASS-shaded.jar");
+
+                        // Get total size of download and prepare progress variables
+                        URLConnection con = fileUrlObj.openConnection();
+                        int size = con.getContentLength();
+                        long totalCount = 0;
+                        int perc;
+                        int prevPerc = 0;
+
+                        // Declare in and out streams
                         inStream = new BufferedInputStream(fileUrlObj.openStream());
                         outStream = new FileOutputStream("./bass.jar");
 
@@ -170,6 +178,15 @@ public class Server extends AuthWebSocketServer {
                         int count;
                         while ((count = inStream.read(fileData, 0, 1024)) != -1) {
                             outStream.write(fileData, 0, count);
+                            totalCount += count;
+
+                            // Keep track of progress and inform socket
+                            perc = (int) (totalCount * 100 / size);
+
+                            if (prevPerc < perc) {
+                                WsPackage.create(Resource.APP, Action.UPDATE).addData("progress", perc).send(ws);
+                                prevPerc = perc;
+                            }
                         }
                         inStream.close();
                         outStream.close();
